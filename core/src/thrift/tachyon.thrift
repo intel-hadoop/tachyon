@@ -43,6 +43,9 @@ struct ClientFileInfo {
   13: i32 dependencyId
   14: i32 inMemoryPercentage
   15: i64 lastModificationTimeMs
+  16: string owner
+  17: string group
+  18: i32 permission
 }
 
 struct ClientDependencyInfo {
@@ -72,6 +75,7 @@ struct Command {
   1: CommandType mCommandType
   2: list<i64> mData
 }
+
 
 exception BlockInfoException {
   1: string message
@@ -236,7 +240,12 @@ service MasterService {
   i32 user_createRawTable(1: string path, 2: i32 columns, 3: binary metadata)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT,
       4: TachyonException eTa)
+  /**
+   * ACL based control
+   */
+  bool user_setPermission(1: i32 fileId, 2: string path, 3: i32 permission, 4: bool recursive)
 
+  bool user_setOwner(1: i32 fileId, 2: string path, 3: string username, 4: string groupname, 5: bool recursive)
   /**
    * Return 0 if does not contain the Table, return fileId if it exists.
    */
