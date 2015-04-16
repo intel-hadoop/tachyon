@@ -17,13 +17,9 @@ package tachyon.command.permission;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-
 /**
- * Base class for parsing either chmod permissions or umask permissions.
- * Includes common code needed by either operation as implemented in
- * UmaskParser and ChmodParser classes.
+ * Base class for parsing either chmod permissions or umask permissions. Includes common code needed
+ * by either operation as implemented in UmaskParser and ChmodParser classes.
  */
 class PermissionParser {
   protected boolean symbolic = false;
@@ -35,7 +31,7 @@ class PermissionParser {
   protected char groupType = '+';
   protected char othersType = '+';
   protected char stickyBitType = '+';
-  
+
   /**
    * Begin parsing permission stored in modeStr
    * 
@@ -43,8 +39,8 @@ class PermissionParser {
    * @param symbolic Use-case specific symbolic pattern to match against
    * @throws IllegalArgumentException if unable to parse modeStr
    */
-  public PermissionParser(String modeStr, Pattern symbolic, Pattern octal) 
-       throws IllegalArgumentException {
+  public PermissionParser(String modeStr, Pattern symbolic, Pattern octal)
+      throws IllegalArgumentException {
     Matcher matcher = null;
 
     if ((matcher = symbolic.matcher(modeStr)).find()) {
@@ -77,19 +73,19 @@ class PermissionParser {
 
       for (char c : matcher.group(1).toCharArray()) {
         switch (c) {
-        case 'u':
-          user = true;
-          break;
-        case 'g':
-          group = true;
-          break;
-        case 'o':
-          others = true;
-          break;
-        case 'a':
-          break;
-        default:
-          throw new RuntimeException("Unexpected");
+          case 'u':
+            user = true;
+            break;
+          case 'g':
+            group = true;
+            break;
+          case 'o':
+            others = true;
+            break;
+          case 'a':
+            break;
+          default:
+            throw new RuntimeException("Unexpected");
         }
       }
 
@@ -101,23 +97,23 @@ class PermissionParser {
 
       for (char c : matcher.group(3).toCharArray()) {
         switch (c) {
-        case 'r':
-          mode |= 4;
-          break;
-        case 'w':
-          mode |= 2;
-          break;
-        case 'x':
-          mode |= 1;
-          break;
-        case 'X':
-          mode |= 8;
-          break;
-        case 't':
-          stickyBit = true;
-          break;
-        default:
-          throw new RuntimeException("Unexpected");
+          case 'r':
+            mode |= 4;
+            break;
+          case 'w':
+            mode |= 2;
+            break;
+          case 'x':
+            mode |= 1;
+            break;
+          case 'X':
+            mode |= 8;
+            break;
+          case 't':
+            stickyBit = true;
+            break;
+          default:
+            throw new RuntimeException("Unexpected");
         }
       }
 
@@ -161,34 +157,36 @@ class PermissionParser {
   }
 
   protected int combineModes(int existing, boolean exeOk) {
-    return   combineModeSegments(stickyBitType, stickyMode, 
-                (existing>>>9), false) << 9 |
-             combineModeSegments(userType, userMode,
-                (existing>>>6)&7, exeOk) << 6 |
-             combineModeSegments(groupType, groupMode,
-                (existing>>>3)&7, exeOk) << 3 |
-             combineModeSegments(othersType, othersMode, existing&7, exeOk);
+    return combineModeSegments(stickyBitType, stickyMode, (existing >>> 9), false) << 9
+        | combineModeSegments(userType, userMode, (existing >>> 6) & 7, exeOk) << 6
+        | combineModeSegments(groupType, groupMode, (existing >>> 3) & 7, exeOk) << 3
+        | combineModeSegments(othersType, othersMode, existing & 7, exeOk);
   }
-  
-  protected int combineModeSegments(char type, int mode, 
-                                    int existing, boolean exeOk) {
+
+  protected int combineModeSegments(char type, int mode, int existing, boolean exeOk) {
     boolean capX = false;
 
-    if ((mode&8) != 0) { // convert X to x;
+    if ((mode & 8) != 0) { // convert X to x;
       capX = true;
       mode &= ~8;
       mode |= 1;
     }
 
     switch (type) {
-    case '+' : mode = mode | existing; break;
-    case '-' : mode = (~mode) & existing; break;
-    case '=' : break;
-    default  : throw new RuntimeException("Unexpected");      
+      case '+':
+        mode = mode | existing;
+        break;
+      case '-':
+        mode = (~mode) & existing;
+        break;
+      case '=':
+        break;
+      default:
+        throw new RuntimeException("Unexpected");
     }
 
     // if X is specified add 'x' only if exeOk or x was already set.
-    if (capX && !exeOk && (mode&1) != 0 && (existing&1) == 0) {
+    if (capX && !exeOk && (mode & 1) != 0 && (existing & 1) == 0) {
       mode &= ~1; // remove x
     }
 
