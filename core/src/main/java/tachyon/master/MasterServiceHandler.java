@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -52,7 +52,7 @@ import tachyon.util.CommonUtils;
 
 /**
  * The Master server program.
- * 
+ *
  * It maintains the state of each worker. It never keeps the state of any user.
  */
 public class MasterServiceHandler implements MasterService.Iface {
@@ -239,7 +239,7 @@ public class MasterServiceHandler implements MasterService.Iface {
     }
     return ret;
   }
-  
+
   @Override
   public void user_heartbeat() throws TException {
     return;
@@ -325,5 +325,19 @@ public class MasterServiceHandler implements MasterService.Iface {
           throws BlockInfoException, TException {
     return mMasterInfo.registerWorker(workerNetAddress, totalBytesOnTiers, usedBytesOnTiers,
         currentBlockIds);
+  }
+
+  @Override
+  public boolean user_setPermission(int fileId, String path, int permission,
+      boolean recursive) throws TException {
+    // TODO Auto-generated method stub
+    return true;
+  }
+
+  @Override
+  public boolean user_setOwner(int fileId, String path, String username,
+      String groupname, boolean recursive) throws TException {
+    // TODO Auto-generated method stub
+    return true;
   }
 }

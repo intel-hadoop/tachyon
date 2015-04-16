@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -70,7 +70,7 @@ import tachyon.util.NetworkUtils;
 
 /**
  * The master server client side.
- * 
+ *
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 // TODO When TException happens, the caller can't really do anything about it.
@@ -194,7 +194,7 @@ public final class MasterClient implements Closeable {
                 interval / 2));
       } catch (TTransportException e) {
         lastException = e;
-        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress 
+        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress
             + " : " + e.getMessage());
         if (mHeartbeat != null) {
           mHeartbeat.cancel(true);
@@ -797,7 +797,7 @@ public final class MasterClient implements Closeable {
 
   /**
    * Register the worker to the master.
-   * 
+   *
    * @param workerNetAddress Worker's NetAddress
    * @param totalBytesOnTiers Total bytes on each storage tier
    * @param usedBytesOnTiers Used bytes on each storage tier
@@ -826,5 +826,37 @@ public final class MasterClient implements Closeable {
       }
     }
     return -1;
+  }
+
+  public synchronized boolean user_setOwner(int fileId, String path, String username,
+      String groupname, boolean recursive) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_setOwner(fileId, path, username, groupname, recursive);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return false;
+  }
+
+  public synchronized boolean user_setPermission(int fileId, String path, short permission,
+      boolean recursive) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_setPermission(fileId, path, permission, recursive);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return false;
   }
 }
