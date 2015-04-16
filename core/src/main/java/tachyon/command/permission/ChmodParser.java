@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.command.permission;
 
 import java.util.regex.Pattern;
@@ -28,12 +29,12 @@ import tachyon.thrift.ClientFileInfo;
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
 public class ChmodParser extends PermissionParser {
-  private static Pattern chmodOctalPattern = Pattern.compile("^\\s*[+]?([01]?)([0-7]{3})\\s*$");
-  private static Pattern chmodNormalPattern = Pattern
+  private static Pattern sChmodOctalPattern = Pattern.compile("^\\s*[+]?([01]?)([0-7]{3})\\s*$");
+  private static Pattern sChmodNormalPattern = Pattern
       .compile("\\G\\s*([ugoa]*)([+=-]+)([rwxXt]+)([,\\s]*)\\s*");
 
   public ChmodParser(String modeStr) throws IllegalArgumentException {
-    super(modeStr, chmodNormalPattern, chmodOctalPattern);
+    super(modeStr, sChmodNormalPattern, sChmodOctalPattern);
   }
 
   /**

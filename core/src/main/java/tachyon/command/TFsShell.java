@@ -587,7 +587,7 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int chmod(String[] argv) throws IOException {
-    return chmod(argv, false);
+    return chmodCore(argv, false);
   }
 
   /**
@@ -598,10 +598,10 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int chmodr(String[] argv) throws IOException {
-    return chmod(argv, true);
+    return chmodCore(argv, true);
   }
 
-  private int chmod(String[] argv, boolean recursive) throws IOException {
+  private int chmodCore(String[] argv, boolean recursive) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: chmod <mode> <file path|folder path>");
       return -1;
@@ -625,7 +625,7 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int chown(String[] argv) throws IOException {
-    return chown(argv, false);
+    return chownCore(argv, false);
   }
 
   /**
@@ -636,10 +636,10 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int chownr(String[] argv) throws IOException {
-    return chown(argv, true);
+    return chownCore(argv, true);
   }
 
-  private int chown(String[] argv, boolean recursive) throws IOException {
+  private int chownCore(String[] argv, boolean recursive) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: chown <owner|owner:group> <file path|folder path>");
       return -1;
@@ -647,7 +647,7 @@ public class TFsShell implements Closeable {
     String owner = "";
     String group = null;
     if (argv[1].contains(":")) {
-      String user[] = argv[1].split(":");  
+      String[] user = argv[1].split(":");  
       owner = user[0];
       group = user[1];
     } else {
@@ -667,7 +667,7 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int chgrp(String[] argv) throws IOException {
-    return chgrp(argv, false);
+    return chgrpCore(argv, false);
   }
 
   /**
@@ -678,10 +678,10 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int chgrpr(String[] argv) throws IOException {
-    return chgrp(argv, true);
+    return chgrpCore(argv, true);
   }
 
-  private int chgrp(String[] argv, boolean recursive) throws IOException {
+  private int chgrpCore(String[] argv, boolean recursive) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: chgrp <group> <file path|folder path>");
       return -1;

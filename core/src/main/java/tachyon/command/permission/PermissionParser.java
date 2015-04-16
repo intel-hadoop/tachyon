@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.command.permission;
 
 import java.util.regex.Matcher;
@@ -22,15 +23,15 @@ import java.util.regex.Pattern;
  * by either operation as implemented in UmaskParser and ChmodParser classes.
  */
 class PermissionParser {
-  protected boolean symbolic = false;
-  protected short userMode;
-  protected short groupMode;
-  protected short othersMode;
-  protected short stickyMode;
-  protected char userType = '+';
-  protected char groupType = '+';
-  protected char othersType = '+';
-  protected char stickyBitType = '+';
+  protected boolean mSymbolic = false;
+  protected short mUserMode;
+  protected short mGroupMode;
+  protected short mOthersMode;
+  protected short mStickyMode;
+  protected char mUserType = '+';
+  protected char mGroupType = '+';
+  protected char mOthersType = '+';
+  protected char mStickyBitType = '+';
 
   /**
    * Begin parsing permission stored in modeStr
@@ -68,8 +69,10 @@ class PermissionParser {
       String str = matcher.group(2);
       char type = str.charAt(str.length() - 1);
 
-      boolean user, group, others, stickyBit;
-      user = group = others = stickyBit = false;
+      boolean user = false;
+      boolean group = false;
+      boolean others = false;
+      boolean stickyBit = false;
 
       for (char c : matcher.group(1).toCharArray()) {
         switch (c) {
@@ -118,49 +121,49 @@ class PermissionParser {
       }
 
       if (user) {
-        userMode = mode;
-        userType = type;
+        mUserMode = mode;
+        mUserType = type;
       }
 
       if (group) {
-        groupMode = mode;
-        groupType = type;
+        mGroupMode = mode;
+        mGroupType = type;
       }
 
       if (others) {
-        othersMode = mode;
-        othersType = type;
+        mOthersMode = mode;
+        mOthersType = type;
 
-        stickyMode = (short) (stickyBit ? 1 : 0);
-        stickyBitType = type;
+        mStickyMode = (short) (stickyBit ? 1 : 0);
+        mStickyBitType = type;
       }
 
       commaSeperated = matcher.group(4).contains(",");
     }
-    symbolic = true;
+    mSymbolic = true;
   }
 
   private void applyOctalPattern(String modeStr, Matcher matcher) {
-    userType = groupType = othersType = '=';
+    mUserType = mGroupType = mOthersType = '=';
 
     // Check if sticky bit is specified
     String sb = matcher.group(1);
     if (!sb.isEmpty()) {
-      stickyMode = Short.valueOf(sb.substring(0, 1));
-      stickyBitType = '=';
+      mStickyMode = Short.valueOf(sb.substring(0, 1));
+      mStickyBitType = '=';
     }
 
     String str = matcher.group(2);
-    userMode = Short.valueOf(str.substring(0, 1));
-    groupMode = Short.valueOf(str.substring(1, 2));
-    othersMode = Short.valueOf(str.substring(2, 3));
+    mUserMode = Short.valueOf(str.substring(0, 1));
+    mGroupMode = Short.valueOf(str.substring(1, 2));
+    mOthersMode = Short.valueOf(str.substring(2, 3));
   }
 
   protected int combineModes(int existing, boolean exeOk) {
-    return combineModeSegments(stickyBitType, stickyMode, (existing >>> 9), false) << 9
-        | combineModeSegments(userType, userMode, (existing >>> 6) & 7, exeOk) << 6
-        | combineModeSegments(groupType, groupMode, (existing >>> 3) & 7, exeOk) << 3
-        | combineModeSegments(othersType, othersMode, existing & 7, exeOk);
+    return combineModeSegments(mStickyBitType, mStickyMode, (existing >>> 9), false) << 9
+        | combineModeSegments(mUserType, mUserMode, (existing >>> 6) & 7, exeOk) << 6
+        | combineModeSegments(mGroupType, mGroupMode, (existing >>> 3) & 7, exeOk) << 3
+        | combineModeSegments(mOthersType, mOthersMode, existing & 7, exeOk);
   }
 
   protected int combineModeSegments(char type, int mode, int existing, boolean exeOk) {
