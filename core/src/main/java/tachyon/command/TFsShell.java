@@ -25,6 +25,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.common.io.Closer;
 
@@ -36,6 +38,7 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.command.permission.ChmodParser;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -470,6 +473,12 @@ public class TFsShell implements Closeable {
     System.out.println("       [pin <path>]");
     System.out.println("       [unpin <path>]");
     System.out.println("       [free <file path|folder path>]");
+    System.out.println("       [chmod <mode> <file path|folder path>]");
+    System.out.println("       [chmodr <mode> <file path|folder path>]");
+    System.out.println("       [chown <owner|owner:group> <file path|folder path>]");
+    System.out.println("       [chownr <owner|owner:group> <file path|folder path>]");
+    System.out.println("       [chgrp <group> <file path|folder path>]");
+    System.out.println("       [chgrpr <group> <file path|folder path>]");
   }
 
   /**
@@ -573,6 +582,120 @@ public class TFsShell implements Closeable {
   }
 
   /**
+   * Changes the mode of a file or a directory specified by argv.
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int chmod(String[] argv) throws IOException {
+    return chmod(argv, false);
+  }
+
+  /**
+   * Changes the mode of a file or a directory specified by argv recursively.
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int chmodr(String[] argv) throws IOException {
+    return chmod(argv, true);
+  }
+
+  private int chmod(String[] argv, boolean recursive) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: chmod <mode> <file path|folder path>");
+      return -1;
+    }
+    String modeStr = argv[1];
+    ChmodParser pp = new ChmodParser(modeStr);
+    TachyonURI path = new TachyonURI(argv[2]);
+    TachyonFS tachyonClient = createFS(path);
+    ClientFileInfo status = tachyonClient.getFileStatus(-1, path);
+    short newPermission = pp.applyNewPermission(status);
+    int fileId = tachyonClient.getFileId(path);
+    tachyonClient.setPermission(fileId, newPermission, recursive);
+    return 0;
+  }
+
+  /**
+   * Changes the owner of a file or a directory specified by argv.
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int chown(String[] argv) throws IOException {
+    return chown(argv, false);
+  }
+
+  /**
+   * Changes the owner of a file or a directory specified by argv recursively.
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int chownr(String[] argv) throws IOException {
+    return chown(argv, true);
+  }
+
+  private int chown(String[] argv, boolean recursive) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: chown <owner|owner:group> <file path|folder path>");
+      return -1;
+    }
+    String owner = "";
+    String group = null;
+    if (argv[1].contains(":")) {
+      String user[] = argv[1].split(":");  
+      owner = user[0];
+      group = user[1];
+    } else {
+      owner = argv[1];
+    }
+    TachyonURI path = new TachyonURI(argv[2]);
+    TachyonFS tachyonClient = createFS(path);
+    tachyonClient.setOwner(path, owner, group, false);
+    return 0;
+  }
+
+  /**
+   * Changes the group of a file or a directory specified by argv.
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int chgrp(String[] argv) throws IOException {
+    return chgrp(argv, false);
+  }
+
+  /**
+   * Changes the group of a file or a directory specified by argv recursively.
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int chgrpr(String[] argv) throws IOException {
+    return chgrp(argv, true);
+  }
+
+  private int chgrp(String[] argv, boolean recursive) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: chgrp <group> <file path|folder path>");
+      return -1;
+    }
+    String group = argv[1];
+    TachyonURI path = new TachyonURI(argv[2]);
+    TachyonFS tachyonClient = createFS(path);
+    tachyonClient.setOwner(path, null, group, recursive);
+    return 0;
+  }
+
+  /**
    * Method which determines how to handle the user's request, will display usage help to the user
    * if command format is incorrect.
    *
@@ -626,6 +749,12 @@ public class TFsShell implements Closeable {
         exitCode = unpin(argv);
       } else if (cmd.equals("free")) {
         exitCode = free(argv);
+      } else if (cmd.equals("chmod")) {
+        exitCode = chmod(argv);
+      } else if (cmd.equals("chown")) {
+        exitCode = chown(argv);
+      } else if (cmd.equals("chgrp")) {
+        exitCode = chgrp(argv);
       } else {
         printUsage();
         return -1;
@@ -757,5 +886,9 @@ public class TFsShell implements Closeable {
     String qualifiedPath = Utils.validatePath(path.toString(), mTachyonConf);
     TachyonFS tachyonFS = TachyonFS.get(new TachyonURI(qualifiedPath), mTachyonConf);
     return mCloser.register(tachyonFS);
+  }
+
+  private int getRealMode(String mode) {
+    return 0;
   }
 }

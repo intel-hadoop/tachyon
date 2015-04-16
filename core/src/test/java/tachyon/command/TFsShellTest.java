@@ -586,4 +586,25 @@ public class TFsShellTest {
     CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(tachyonConf) * 2 + 10);
     Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
   }
+
+  @Test
+  // TODO
+  public void chmodTest() throws IOException {
+    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    mFsShell.chmod(new String[]{""});
+  }
+
+  @Test
+  // TODO
+  public void chownTest() throws IOException {
+    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    mFsShell.chown(new String[]{""});
+  }
+
+  @Test
+  // TODO
+  public void chgrpTest() throws IOException {
+    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    mFsShell.chgrp(new String[]{""});
+  }
 }
