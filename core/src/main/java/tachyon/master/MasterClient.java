@@ -20,18 +20,29 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.sasl.SaslException;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
+
+import org.apache.thrift.transport.TSaslClientTransport;
 import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,8 +189,7 @@ public final class MasterClient implements Closeable {
           + mMasterAddress);
 
       mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(
-              NetworkUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
+          new TBinaryProtocol(createTransport());
       mClient = new MasterService.Client(mProtocol);
       try {
         mProtocol.getTransport().open();
@@ -218,6 +228,77 @@ public final class MasterClient implements Closeable {
     // Reaching here indicates that we did not successfully connect.
     throw new IOException("Failed to connect to master " + mMasterAddress + " after "
         + (retry.getRetryCount()) + " attempts", lastException);
+  }
+
+  /**
+   * Create transport per the connection options
+   * Supported transport options are:
+   *   - SASL based transports over
+   *      + Kerberos
+   *      + Delegation token
+   *      + SSL
+   *      + non-SSL
+   *   - Raw (non-SASL) socket
+   *
+   *   Kerberos and Delegation token supports SASL QOP configurations
+   * @throws TTransportException
+   */
+  private TTransport createTransport() throws IOException {
+    TTransport tTransport = null;
+    try {
+      if (!"noSasl".equals(mTachyonConf.get("auth", "noSasl"))) {
+        // handle specific secure connection
+        // TODO: 1. Kerboros 2. delegation token
+
+        // 3. Plain Sasl connection with user/password
+        // TODO: define the key as a Constant
+        String username = mTachyonConf.get("user", "anonymous");
+        String password = mTachyonConf.get("password", "anonymous");
+        if (false) {
+          // TODO: ssl connection
+        } else {
+          // non-SSL socket transport
+          tTransport = new TSocket(NetworkUtils.getFqdnHost(mMasterAddress),
+              mMasterAddress.getPort());
+        }
+        // Overlay the SASL transport on top of the base socket transport (SSL or non-SSL)
+        tTransport = new TSaslClientTransport("PLAIN", null, null, null, new HashMap<String,
+                    String>(), new PlainCallbackHandler(username, password), tTransport);
+      } else {
+        // TODO: Raw socket connection (non-sasl)
+        // the original code
+      }
+    } catch (SaslException e) {
+      // TODO: handle it.
+      throw e;
+    }
+    return tTransport;
+  }
+
+  public static class PlainCallbackHandler implements CallbackHandler {
+
+    private final String mUserName;
+    private final String mPassword;
+
+    public PlainCallbackHandler(String mUserName, String mPassword) {
+      this.mUserName = mUserName;
+      this.mPassword = mPassword;
+    }
+
+    @Override
+    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+      for (Callback callback : callbacks) {
+        if (callback instanceof NameCallback) {
+          NameCallback nameCallback = (NameCallback) callback;
+          nameCallback.setName(mUserName);
+        } else if (callback instanceof PasswordCallback) {
+          PasswordCallback passCallback = (PasswordCallback) callback;
+          passCallback.setPassword(mPassword.toCharArray());
+        } else {
+          throw new UnsupportedCallbackException(callback);
+        }
+      }
+    }
   }
 
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {

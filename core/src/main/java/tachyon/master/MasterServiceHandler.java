@@ -93,7 +93,24 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public List<ClientFileInfo> liststatus(String path) throws InvalidPathException,
       FileDoesNotExistException, AccessControlException, TException {
+    checkPermission();
     return mMasterInfo.getFilesInfo(new TachyonURI(path));
+  }
+
+  private void checkPermission() {
+    System.out.println("MY PATTERN: we will check the ACL of user " + getUserName());
+  }
+
+  private String getUserName() {
+    String userName = null;
+    // TODO: 1. kerbores mode, we get remote user. 2. HTTP mode 3. ...
+
+    // Plain Sasl
+    userName = TSetUserProcessor.getUserName();
+
+    //TODO: proxy the user if needed
+
+    return userName;
   }
 
   @Override

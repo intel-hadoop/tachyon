@@ -25,6 +25,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 import com.google.common.io.Closer;
 
@@ -882,6 +883,20 @@ public class TFsShell implements Closeable {
    */
   private TachyonFS createFS(final TachyonURI path) throws IOException {
     String qualifiedPath = Utils.validatePath(path.toString(), mTachyonConf);
+
+    // CLI user input auth info
+    String username;
+    String password;
+    String authType;
+    // TODO: 1. prompt user to input. 2. get from UNIX account.
+    // TODO: define the key of conf as a Constant.
+    username = "intel";
+    password = "123";
+    authType = "plain";
+    mTachyonConf.set("user", username);
+    mTachyonConf.set("password", password);
+    mTachyonConf.set("auth", authType);
+
     TachyonFS tachyonFS = TachyonFS.get(new TachyonURI(qualifiedPath), mTachyonConf);
     return mCloser.register(tachyonFS);
   }

@@ -20,12 +20,15 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.thrift.TProcessor;
+import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +42,7 @@ import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemHdfs;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
+import tachyon.secutiry.authentication.AuthHelper;
 import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -116,7 +120,7 @@ public class TachyonMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      mServerTServerSocket = new TServerSocket(address);
+      mServerTServerSocket = createTServerSocket(address);
       mPort = NetworkUtils.getPort(mServerTServerSocket);
 
       mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
@@ -146,6 +150,13 @@ public class TachyonMaster {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
+  }
+
+  private TServerSocket createTServerSocket(InetSocketAddress address) throws TTransportException {
+    // TODO: ssl
+
+    // no-ssl
+    return new TServerSocket(address);
   }
 
   /**
@@ -229,21 +240,57 @@ public class TachyonMaster {
     }
     mMasterInfo.init();
 
+    //TODO: auth http connection
     mWebServer =
         new UIWebServer("Tachyon Master Server", new InetSocketAddress(
             NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
 
-    mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
-    MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
-        new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
-
-    mMasterServiceServer =
-        new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
-            .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
-            .processor(masterServiceProcessor).transportFactory(new TFramedTransport.Factory())
-            .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+    // auth thrift RPC
+    mMasterServiceServer = createMasterServiceServer();
 
     mIsStarted = true;
+  }
+
+  private TServer createMasterServiceServer() {
+    try {
+      // processor
+      mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
+      TProcessorFactory processorFactory = getAuthProcFactory(mMasterServiceHandler);
+
+      // transport
+      TTransportFactory tTransportFactory = AuthHelper.getAuthTransFactory();
+
+      // create server
+      return new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
+          .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
+          .processorFactory(processorFactory).transportFactory(tTransportFactory)
+          .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+    } catch (Exception e) {
+      // TODO: handle it
+      throw new RuntimeException(e);
+    }
+  }
+
+  private TProcessorFactory getAuthProcFactory(MasterService.Iface service) {
+    // TODO: 1. kerbores 2. ...
+
+    // Plain Sasl
+    return new PlainProcessorFactory(service);
+  }
+
+  private static final class PlainProcessorFactory extends TProcessorFactory {
+
+    private final MasterService.Iface mService;
+
+    PlainProcessorFactory(MasterService.Iface mService) {
+      super(null);
+      this.mService = mService;
+    }
+
+    @Override
+    public TProcessor getProcessor(TTransport trans) {
+      return new TSetUserProcessor<MasterService.Iface>(mService);
+    }
   }
 
   public void start() {
