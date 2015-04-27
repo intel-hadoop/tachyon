@@ -13,22 +13,13 @@
  * the License.
  */
 
-package tachyon.master.permission;
+package tachyon.security;
 
-import java.io.IOException;
+import java.util.Set;
 
-public class AccessControlException extends IOException {
-  private static final long serialVersionUID = 1L;
+public interface AuthenticationProvider {
 
-  public AccessControlException() {
-    super("Permission denied.");
-  }
+  public String getUserName();
 
-  public AccessControlException(String s) {
-    super(s);
-  }
-
-  public AccessControlException(Throwable cause) {
-    super(cause);
-  }
+  public Set<String> getGroupNames();
 }

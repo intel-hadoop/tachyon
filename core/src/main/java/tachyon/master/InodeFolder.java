@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
+import tachyon.master.permission.Acl;
 import tachyon.thrift.ClientFileInfo;
 
 /**
@@ -56,6 +57,9 @@ public class InodeFolder extends Inode {
     final int parentId = ele.getInt("parentId");
     List<Integer> childrenIds = ele.get("childrenIds", new TypeReference<List<Integer>>() {});
     final long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
+    final String owner = ele.getString("owner");
+    final String group = ele.getString("group");
+    final short permission = ele.getShort("permission");
     int numberOfChildren = childrenIds.size();
     Inode[] children = new Inode[numberOfChildren];
     for (int k = 0; k < numberOfChildren; k ++) {
@@ -79,8 +83,8 @@ public class InodeFolder extends Inode {
           throw new IOException("Invalid element type " + ele);
       }
     }
-
     InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
+    folder.setAcl(new Acl.Builder().build(owner, group, permission));
     folder.setPinned(isPinned);
     folder.addChildren(children);
     folder.setLastModificationTimeMs(lastModificationTimeMs);
@@ -96,6 +100,7 @@ public class InodeFolder extends Inode {
    * @param name The name of the folder
    * @param id The id of the folder
    * @param parentId The id of the parent of the folder
+   * @param acl the acl of the inode
    * @param creationTimeMs The creation time of the folder, in milliseconds
    */
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
@@ -147,6 +152,9 @@ public class InodeFolder extends Inode {
     ret.blockIds = null;
     ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
+    ret.owner = mAcl.getUserName();
+    ret.group = mAcl.getGroupName();
+    ret.permission = mAcl.toShort();
 
     return ret;
   }
@@ -242,7 +250,9 @@ public class InodeFolder extends Inode {
             .withParameter("creationTimeMs", getCreationTimeMs()).withParameter("id", getId())
             .withParameter("name", getName()).withParameter("parentId", getParentId())
             .withParameter("pinned", isPinned()).withParameter("childrenIds", getChildrenIds())
-            .withParameter("lastModificationTimeMs", getLastModificationTimeMs());
+            .withParameter("lastModificationTimeMs", getLastModificationTimeMs())
+            .withParameter("owner", mAcl.getUserName()).withParameter("group", mAcl.getGroupName())
+            .withParameter("permission", mAcl.toShort());
 
     writeElement(objWriter, dos, ele);
 

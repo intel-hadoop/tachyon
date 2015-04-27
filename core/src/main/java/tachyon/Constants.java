@@ -49,6 +49,18 @@ public class Constants {
   public static final String SCHEME_FT = "tachyon-ft";
   public static final String HEADER_FT = SCHEME_FT + "://";
 
+  /**
+   * Access Control List(Tachyon-283)
+   */
+  public static final String FS_PERMISSIONS_UMASK_KEY = "tfs.permission.umask";
+  public static final int DEFAULT_FS_PERMISSIONS_UMASK = 0022;
+  public static final String FS_PERMISSIONS_SUPERGROUP = "tfs.permission.supergroup";
+  public static final String FS_PERMISSIONS_SUPERGROUP_DEFAULT = "supergroup";
+  // Default permission of directory
+  public static final short DEFAULT_DIR_PERMISSION = 0777;
+  // Default permission of file
+  public static final short DEFAULT_FILE_PERMISSION = 0666;
+
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
@@ -174,5 +186,5 @@ public class Constants {
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
       tachyon.client.tcp.TCPRemoteBlockReader.class;
-  
+
 }

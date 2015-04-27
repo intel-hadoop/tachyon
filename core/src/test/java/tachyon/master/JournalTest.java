@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -33,6 +33,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.AccessControlException;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -50,7 +51,7 @@ public class JournalTest {
 
   /**
    * Test add block
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -72,7 +73,7 @@ public class JournalTest {
   }
 
   private void AddBlockTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+      FileDoesNotExistException,AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -91,7 +92,7 @@ public class JournalTest {
 
   /**
    * Test add checkpoint
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -110,7 +111,7 @@ public class JournalTest {
   }
 
   private void AddCheckpointTestUtil(ClientFileInfo fileInfo, ClientFileInfo ckFileInfo)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -130,7 +131,7 @@ public class JournalTest {
 
   /**
    * mLocalTachyonCluster is not closed in after(). Need to be closed by any test method.
-   * 
+   *
    * @throws Exception
    */
   @After
@@ -151,7 +152,7 @@ public class JournalTest {
 
   /**
    * Test completed Editlog deletion
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -175,7 +176,7 @@ public class JournalTest {
 
   /**
    * Test file and folder creation and deletion;
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -232,7 +233,7 @@ public class JournalTest {
 
   /**
    * Test file and folder creation.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -269,7 +270,7 @@ public class JournalTest {
 
   /**
    * Test files creation.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -285,7 +286,7 @@ public class JournalTest {
   }
 
   private void FileTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+      FileDoesNotExistException, AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -321,7 +322,7 @@ public class JournalTest {
   }
 
   private void PinTestUtil(ClientFileInfo folder, ClientFileInfo file0, ClientFileInfo file1)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -345,7 +346,7 @@ public class JournalTest {
 
   /**
    * Test folder creation.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -360,7 +361,7 @@ public class JournalTest {
   }
 
   private void FolderTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+      FileDoesNotExistException, AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -376,7 +377,7 @@ public class JournalTest {
 
   /**
    * Test files creation.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -409,7 +410,7 @@ public class JournalTest {
 
   /**
    * Test reading multiple edit logs.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -444,7 +445,7 @@ public class JournalTest {
 
   /**
    * Test renaming completed edit logs.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -494,7 +495,7 @@ public class JournalTest {
 
   /**
    * Test file and folder creation, and rename;
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -533,7 +534,7 @@ public class JournalTest {
 
   /**
    * Test folder creation.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -549,7 +550,7 @@ public class JournalTest {
   }
 
   private void TableTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+      FileDoesNotExistException,AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);

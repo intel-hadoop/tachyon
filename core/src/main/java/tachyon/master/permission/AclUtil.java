@@ -15,27 +15,12 @@
 
 package tachyon.master.permission;
 
-import org.apache.hadoop.conf.Configuration;
-
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.master.permission.AclEntry.AclPermission;
 
 public class AclUtil {
   private static final AclPermission[] ACL_PERMISSIONS = AclPermission.values();
-  // ACL enable key, the default value of this key is true
-  public static final String ACL_ENABLE_KEY = "tfs.permission.enable";
-
-  // umask key
-  public static final String UMASK_KEY = "tfs.permission.umask";
-
-  // Default value of umask
-  public static final int DEFAULT_UMASK = 0022;
-
-  // Default permission of directory
-  public static final short DEFAULT_DIR_PERMISSION = 0777;
-
-  // Default permission of file
-  public static final short DEFAULT_FILE_PERMISSION = 0666;
-
   /**
    * Get user permission from a short
    * @param n, short permission, e.g. 777
@@ -82,16 +67,25 @@ public class AclUtil {
   }
 
   /**
+   * Format permission expression from a short
+   * @param n, a short permission, e.g. 00777
+   * @return a String: "rwxrwxrwx"
+   */
+  public static String formatPermission(short n) {
+    return toUserPermission(n).mValue + toGroupPermission(n).mValue + toOtherPermission(n).mValue;
+  }
+
+  /**
    * Get umask from configuration
    * @param conf
    * @return umask
    */
-  public static short getUMask(Configuration conf) {
-    int umask = DEFAULT_UMASK;
+  public static short getUMask(TachyonConf conf) {
+    int umask = Constants.DEFAULT_FS_PERMISSIONS_UMASK;
     if (conf != null) {
-      umask = conf.getInt(UMASK_KEY, DEFAULT_UMASK);
+      umask = conf.getInt(Constants.FS_PERMISSIONS_UMASK_KEY,
+          Constants.DEFAULT_FS_PERMISSIONS_UMASK);
     }
-
     return (short)umask;
   }
 }

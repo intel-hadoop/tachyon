@@ -16,6 +16,7 @@
 package tachyon.master;
 
 import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclUtil;
 import tachyon.thrift.ClientFileInfo;
 
 /**
@@ -28,7 +29,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   private int mId;
   private String mName;
   private int mParentId;
-  private Acl mAcl;
+  protected Acl mAcl;
 
   /**
    * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
@@ -45,12 +46,13 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    * @param id the id of the inode, which is globaly unique.
    * @param parentId the parent of the inode. -1 if there is no parent.
    * @param isFolder if the inode presents a folder
+   * @param acl the acl of the inode
    * @param creationTimeMs the creation time of the inode.
    */
-  protected Inode(String name, int id, int parentId, boolean isFolder, long creationTimeMs) {
+  protected Inode(String name, int id, int parentId, boolean isFolder,
+      long creationTimeMs) {
     mCreationTimeMs = creationTimeMs;
     mIsFolder = isFolder;
-
     mId = id;
     mName = name;
     mParentId = parentId;
@@ -202,6 +204,9 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   public synchronized String toString() {
     return new StringBuilder("Inode(").append("ID:").append(mId).append(", NAME:").append(mName)
         .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:")
+        .append(", owner:").append(mAcl.getUserName()).append(", group:")
+        .append(mAcl.getGroupName()).append(", permission:")
+        .append(AclUtil.formatPermission(mAcl.toShort()))
         .append(mCreationTimeMs).append(", PINNED:").append(mPinned)
         .append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs).append(")")
         .toString();

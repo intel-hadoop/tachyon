@@ -40,7 +40,7 @@ public class MasterService {
 
     public List<ClientWorkerInfo> getWorkersInfo() throws org.apache.thrift.TException;
 
-    public List<ClientFileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException;
+    public List<ClientFileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, AccessControlException, org.apache.thrift.TException;
 
     /**
      * Worker register and synch up capacity of Tachyon space, used space bytes and blocks in each
@@ -93,7 +93,7 @@ public class MasterService {
 
     public void user_requestFilesInDependency(int depId) throws DependencyDoesNotExistException, org.apache.thrift.TException;
 
-    public int user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
+    public int user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, AccessControlException, org.apache.thrift.TException;
 
     public long user_createNewBlock(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
 
@@ -111,7 +111,7 @@ public class MasterService {
      */
     public NetAddress user_getWorker(boolean random, String host) throws NoWorkerException, org.apache.thrift.TException;
 
-    public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException, org.apache.thrift.TException;
+    public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException, AccessControlException, org.apache.thrift.TException;
 
     /**
      * Get block's ClientBlockInfo.
@@ -135,13 +135,13 @@ public class MasterService {
      * @param path
      * @param recursive
      */
-    public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException, org.apache.thrift.TException;
+    public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException, AccessControlException, org.apache.thrift.TException;
 
-    public boolean user_rename(int fileId, String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public boolean user_rename(int fileId, String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException;
 
     public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException, org.apache.thrift.TException;
 
-    public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException;
+    public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, TachyonException, AccessControlException, org.apache.thrift.TException;
 
     public int user_createRawTable(String path, int columns, ByteBuffer metadata) throws FileAlreadyExistException, InvalidPathException, TableColumnException, TachyonException, org.apache.thrift.TException;
 
@@ -153,9 +153,9 @@ public class MasterService {
      * @param permission
      * @param recursive
      */
-    public boolean user_setPermission(int fileId, String path, int permission, boolean recursive) throws org.apache.thrift.TException;
+    public boolean user_setPermission(int fileId, String path, int permission, boolean recursive) throws TachyonException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException;
 
-    public boolean user_setOwner(int fileId, String path, String username, String groupname, boolean recursive) throws org.apache.thrift.TException;
+    public boolean user_setOwner(int fileId, String path, String username, String groupname, boolean recursive) throws TachyonException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException;
 
     /**
      * Return 0 if does not contain the Table, return fileId if it exists.
@@ -336,7 +336,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getWorkersInfo failed: unknown result");
     }
 
-    public List<ClientFileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException
+    public List<ClientFileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, AccessControlException, org.apache.thrift.TException
     {
       send_liststatus(path);
       return recv_liststatus();
@@ -349,7 +349,7 @@ public class MasterService {
       sendBase("liststatus", args);
     }
 
-    public List<ClientFileInfo> recv_liststatus() throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException
+    public List<ClientFileInfo> recv_liststatus() throws InvalidPathException, FileDoesNotExistException, AccessControlException, org.apache.thrift.TException
     {
       liststatus_result result = new liststatus_result();
       receiveBase(result, "liststatus");
@@ -361,6 +361,9 @@ public class MasterService {
       }
       if (result.eF != null) {
         throw result.eF;
+      }
+      if (result.eAC != null) {
+        throw result.eAC;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "liststatus failed: unknown result");
     }
@@ -615,7 +618,7 @@ public class MasterService {
       return;
     }
 
-    public int user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public int user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, AccessControlException, org.apache.thrift.TException
     {
       send_user_createFile(path, ufsPath, blockSizeByte, recursive);
       return recv_user_createFile();
@@ -631,7 +634,7 @@ public class MasterService {
       sendBase("user_createFile", args);
     }
 
-    public int recv_user_createFile() throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public int recv_user_createFile() throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, AccessControlException, org.apache.thrift.TException
     {
       user_createFile_result result = new user_createFile_result();
       receiveBase(result, "user_createFile");
@@ -652,6 +655,9 @@ public class MasterService {
       }
       if (result.eT != null) {
         throw result.eT;
+      }
+      if (result.eAC != null) {
+        throw result.eAC;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_createFile failed: unknown result");
     }
@@ -781,7 +787,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getWorker failed: unknown result");
     }
 
-    public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException, org.apache.thrift.TException
+    public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException, AccessControlException, org.apache.thrift.TException
     {
       send_getFileStatus(fileId, path);
       return recv_getFileStatus();
@@ -795,7 +801,7 @@ public class MasterService {
       sendBase("getFileStatus", args);
     }
 
-    public ClientFileInfo recv_getFileStatus() throws InvalidPathException, org.apache.thrift.TException
+    public ClientFileInfo recv_getFileStatus() throws InvalidPathException, AccessControlException, org.apache.thrift.TException
     {
       getFileStatus_result result = new getFileStatus_result();
       receiveBase(result, "getFileStatus");
@@ -804,6 +810,9 @@ public class MasterService {
       }
       if (result.eI != null) {
         throw result.eI;
+      }
+      if (result.eA != null) {
+        throw result.eA;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileStatus failed: unknown result");
     }
@@ -867,7 +876,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getFileBlocks failed: unknown result");
     }
 
-    public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException, org.apache.thrift.TException
+    public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException, AccessControlException, org.apache.thrift.TException
     {
       send_user_delete(fileId, path, recursive);
       return recv_user_delete();
@@ -882,7 +891,7 @@ public class MasterService {
       sendBase("user_delete", args);
     }
 
-    public boolean recv_user_delete() throws TachyonException, org.apache.thrift.TException
+    public boolean recv_user_delete() throws TachyonException, AccessControlException, org.apache.thrift.TException
     {
       user_delete_result result = new user_delete_result();
       receiveBase(result, "user_delete");
@@ -892,10 +901,13 @@ public class MasterService {
       if (result.e != null) {
         throw result.e;
       }
+      if (result.eAC != null) {
+        throw result.eAC;
+      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_delete failed: unknown result");
     }
 
-    public boolean user_rename(int fileId, String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean user_rename(int fileId, String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException
     {
       send_user_rename(fileId, srcPath, dstPath);
       return recv_user_rename();
@@ -910,7 +922,7 @@ public class MasterService {
       sendBase("user_rename", args);
     }
 
-    public boolean recv_user_rename() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean recv_user_rename() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException
     {
       user_rename_result result = new user_rename_result();
       receiveBase(result, "user_rename");
@@ -925,6 +937,9 @@ public class MasterService {
       }
       if (result.eI != null) {
         throw result.eI;
+      }
+      if (result.eAC != null) {
+        throw result.eAC;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_rename failed: unknown result");
     }
@@ -953,7 +968,7 @@ public class MasterService {
       return;
     }
 
-    public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException
+    public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, TachyonException, AccessControlException, org.apache.thrift.TException
     {
       send_user_mkdirs(path, recursive);
       return recv_user_mkdirs();
@@ -967,7 +982,7 @@ public class MasterService {
       sendBase("user_mkdirs", args);
     }
 
-    public boolean recv_user_mkdirs() throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException
+    public boolean recv_user_mkdirs() throws FileAlreadyExistException, InvalidPathException, TachyonException, AccessControlException, org.apache.thrift.TException
     {
       user_mkdirs_result result = new user_mkdirs_result();
       receiveBase(result, "user_mkdirs");
@@ -982,6 +997,9 @@ public class MasterService {
       }
       if (result.eT != null) {
         throw result.eT;
+      }
+      if (result.eAC != null) {
+        throw result.eAC;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_mkdirs failed: unknown result");
     }
@@ -1023,7 +1041,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_createRawTable failed: unknown result");
     }
 
-    public boolean user_setPermission(int fileId, String path, int permission, boolean recursive) throws org.apache.thrift.TException
+    public boolean user_setPermission(int fileId, String path, int permission, boolean recursive) throws TachyonException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException
     {
       send_user_setPermission(fileId, path, permission, recursive);
       return recv_user_setPermission();
@@ -1039,17 +1057,29 @@ public class MasterService {
       sendBase("user_setPermission", args);
     }
 
-    public boolean recv_user_setPermission() throws org.apache.thrift.TException
+    public boolean recv_user_setPermission() throws TachyonException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException
     {
       user_setPermission_result result = new user_setPermission_result();
       receiveBase(result, "user_setPermission");
       if (result.isSetSuccess()) {
         return result.success;
       }
+      if (result.eA != null) {
+        throw result.eA;
+      }
+      if (result.eF != null) {
+        throw result.eF;
+      }
+      if (result.eI != null) {
+        throw result.eI;
+      }
+      if (result.eAC != null) {
+        throw result.eAC;
+      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_setPermission failed: unknown result");
     }
 
-    public boolean user_setOwner(int fileId, String path, String username, String groupname, boolean recursive) throws org.apache.thrift.TException
+    public boolean user_setOwner(int fileId, String path, String username, String groupname, boolean recursive) throws TachyonException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException
     {
       send_user_setOwner(fileId, path, username, groupname, recursive);
       return recv_user_setOwner();
@@ -1066,12 +1096,24 @@ public class MasterService {
       sendBase("user_setOwner", args);
     }
 
-    public boolean recv_user_setOwner() throws org.apache.thrift.TException
+    public boolean recv_user_setOwner() throws TachyonException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException
     {
       user_setOwner_result result = new user_setOwner_result();
       receiveBase(result, "user_setOwner");
       if (result.isSetSuccess()) {
         return result.success;
+      }
+      if (result.eA != null) {
+        throw result.eA;
+      }
+      if (result.eF != null) {
+        throw result.eF;
+      }
+      if (result.eI != null) {
+        throw result.eI;
+      }
+      if (result.eAC != null) {
+        throw result.eAC;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_setOwner failed: unknown result");
     }
@@ -1338,7 +1380,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public List<ClientFileInfo> getResult() throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException {
+      public List<ClientFileInfo> getResult() throws InvalidPathException, FileDoesNotExistException, AccessControlException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1715,7 +1757,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public int getResult() throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException {
+      public int getResult() throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, AccessControlException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1913,7 +1955,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public ClientFileInfo getResult() throws InvalidPathException, org.apache.thrift.TException {
+      public ClientFileInfo getResult() throws InvalidPathException, AccessControlException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2018,7 +2060,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws TachyonException, org.apache.thrift.TException {
+      public boolean getResult() throws TachyonException, AccessControlException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2056,7 +2098,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
+      public boolean getResult() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2126,7 +2168,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException {
+      public boolean getResult() throws FileAlreadyExistException, InvalidPathException, TachyonException, AccessControlException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2205,7 +2247,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws org.apache.thrift.TException {
+      public boolean getResult() throws TachyonException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2249,7 +2291,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws org.apache.thrift.TException {
+      public boolean getResult() throws TachyonException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2577,6 +2619,8 @@ public class MasterService {
           result.eI = eI;
         } catch (FileDoesNotExistException eF) {
           result.eF = eF;
+        } catch (AccessControlException eAC) {
+          result.eAC = eAC;
         }
         return result;
       }
@@ -2830,6 +2874,8 @@ public class MasterService {
           result.eS = eS;
         } catch (TachyonException eT) {
           result.eT = eT;
+        } catch (AccessControlException eAC) {
+          result.eAC = eAC;
         }
         return result;
       }
@@ -2973,6 +3019,8 @@ public class MasterService {
           result.success = iface.getFileStatus(args.fileId, args.path);
         } catch (InvalidPathException eI) {
           result.eI = eI;
+        } catch (AccessControlException eA) {
+          result.eA = eA;
         }
         return result;
       }
@@ -3050,6 +3098,8 @@ public class MasterService {
           result.setSuccessIsSet(true);
         } catch (TachyonException e) {
           result.e = e;
+        } catch (AccessControlException eAC) {
+          result.eAC = eAC;
         }
         return result;
       }
@@ -3079,6 +3129,8 @@ public class MasterService {
           result.eF = eF;
         } catch (InvalidPathException eI) {
           result.eI = eI;
+        } catch (AccessControlException eAC) {
+          result.eAC = eAC;
         }
         return result;
       }
@@ -3132,6 +3184,8 @@ public class MasterService {
           result.eI = eI;
         } catch (TachyonException eT) {
           result.eT = eT;
+        } catch (AccessControlException eAC) {
+          result.eAC = eAC;
         }
         return result;
       }
@@ -3183,8 +3237,18 @@ public class MasterService {
 
       public user_setPermission_result getResult(I iface, user_setPermission_args args) throws org.apache.thrift.TException {
         user_setPermission_result result = new user_setPermission_result();
-        result.success = iface.user_setPermission(args.fileId, args.path, args.permission, args.recursive);
-        result.setSuccessIsSet(true);
+        try {
+          result.success = iface.user_setPermission(args.fileId, args.path, args.permission, args.recursive);
+          result.setSuccessIsSet(true);
+        } catch (TachyonException eA) {
+          result.eA = eA;
+        } catch (FileDoesNotExistException eF) {
+          result.eF = eF;
+        } catch (InvalidPathException eI) {
+          result.eI = eI;
+        } catch (AccessControlException eAC) {
+          result.eAC = eAC;
+        }
         return result;
       }
     }
@@ -3204,8 +3268,18 @@ public class MasterService {
 
       public user_setOwner_result getResult(I iface, user_setOwner_args args) throws org.apache.thrift.TException {
         user_setOwner_result result = new user_setOwner_result();
-        result.success = iface.user_setOwner(args.fileId, args.path, args.username, args.groupname, args.recursive);
-        result.setSuccessIsSet(true);
+        try {
+          result.success = iface.user_setOwner(args.fileId, args.path, args.username, args.groupname, args.recursive);
+          result.setSuccessIsSet(true);
+        } catch (TachyonException eA) {
+          result.eA = eA;
+        } catch (FileDoesNotExistException eF) {
+          result.eF = eF;
+        } catch (InvalidPathException eI) {
+          result.eI = eI;
+        } catch (AccessControlException eAC) {
+          result.eAC = eAC;
+        }
         return result;
       }
     }
@@ -3556,6 +3630,11 @@ public class MasterService {
             else             if (e instanceof FileDoesNotExistException) {
                         result.eF = (FileDoesNotExistException) e;
                         result.setEFIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof AccessControlException) {
+                        result.eAC = (AccessControlException) e;
+                        result.setEACIsSet(true);
                         msg = result;
             }
              else 
@@ -4161,6 +4240,11 @@ public class MasterService {
                         result.setETIsSet(true);
                         msg = result;
             }
+            else             if (e instanceof AccessControlException) {
+                        result.eAC = (AccessControlException) e;
+                        result.setEACIsSet(true);
+                        msg = result;
+            }
              else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
@@ -4499,6 +4583,11 @@ public class MasterService {
                         result.setEIIsSet(true);
                         msg = result;
             }
+            else             if (e instanceof AccessControlException) {
+                        result.eA = (AccessControlException) e;
+                        result.setEAIsSet(true);
+                        msg = result;
+            }
              else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
@@ -4681,6 +4770,11 @@ public class MasterService {
                         result.setEIsSet(true);
                         msg = result;
             }
+            else             if (e instanceof AccessControlException) {
+                        result.eAC = (AccessControlException) e;
+                        result.setEACIsSet(true);
+                        msg = result;
+            }
              else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
@@ -4747,6 +4841,11 @@ public class MasterService {
             else             if (e instanceof InvalidPathException) {
                         result.eI = (InvalidPathException) e;
                         result.setEIIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof AccessControlException) {
+                        result.eAC = (AccessControlException) e;
+                        result.setEACIsSet(true);
                         msg = result;
             }
              else 
@@ -4871,6 +4970,11 @@ public class MasterService {
             else             if (e instanceof TachyonException) {
                         result.eT = (TachyonException) e;
                         result.setETIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof AccessControlException) {
+                        result.eAC = (AccessControlException) e;
+                        result.setEACIsSet(true);
                         msg = result;
             }
              else 
@@ -4999,6 +5103,27 @@ public class MasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             user_setPermission_result result = new user_setPermission_result();
+            if (e instanceof TachyonException) {
+                        result.eA = (TachyonException) e;
+                        result.setEAIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof FileDoesNotExistException) {
+                        result.eF = (FileDoesNotExistException) e;
+                        result.setEFIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof InvalidPathException) {
+                        result.eI = (InvalidPathException) e;
+                        result.setEIIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof AccessControlException) {
+                        result.eAC = (AccessControlException) e;
+                        result.setEACIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -5051,6 +5176,27 @@ public class MasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             user_setOwner_result result = new user_setOwner_result();
+            if (e instanceof TachyonException) {
+                        result.eA = (TachyonException) e;
+                        result.setEAIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof FileDoesNotExistException) {
+                        result.eF = (FileDoesNotExistException) e;
+                        result.setEFIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof InvalidPathException) {
+                        result.eI = (InvalidPathException) e;
+                        result.setEIIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof AccessControlException) {
+                        result.eAC = (AccessControlException) e;
+                        result.setEACIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -7731,6 +7877,7 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
     private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_AC_FIELD_DESC = new org.apache.thrift.protocol.TField("eAC", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -7741,12 +7888,14 @@ public class MasterService {
     public List<ClientFileInfo> success; // required
     public InvalidPathException eI; // required
     public FileDoesNotExistException eF; // required
+    public AccessControlException eAC; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
       E_I((short)1, "eI"),
-      E_F((short)2, "eF");
+      E_F((short)2, "eF"),
+      E_AC((short)3, "eAC");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -7767,6 +7916,8 @@ public class MasterService {
             return E_I;
           case 2: // E_F
             return E_F;
+          case 3: // E_AC
+            return E_AC;
           default:
             return null;
         }
@@ -7817,6 +7968,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AC, new org.apache.thrift.meta_data.FieldMetaData("eAC", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(liststatus_result.class, metaDataMap);
     }
@@ -7827,12 +7980,14 @@ public class MasterService {
     public liststatus_result(
       List<ClientFileInfo> success,
       InvalidPathException eI,
-      FileDoesNotExistException eF)
+      FileDoesNotExistException eF,
+      AccessControlException eAC)
     {
       this();
       this.success = success;
       this.eI = eI;
       this.eF = eF;
+      this.eAC = eAC;
     }
 
     /**
@@ -7852,6 +8007,9 @@ public class MasterService {
       if (other.isSetEF()) {
         this.eF = new FileDoesNotExistException(other.eF);
       }
+      if (other.isSetEAC()) {
+        this.eAC = new AccessControlException(other.eAC);
+      }
     }
 
     public liststatus_result deepCopy() {
@@ -7863,6 +8021,7 @@ public class MasterService {
       this.success = null;
       this.eI = null;
       this.eF = null;
+      this.eAC = null;
     }
 
     public int getSuccessSize() {
@@ -7952,6 +8111,30 @@ public class MasterService {
       }
     }
 
+    public AccessControlException getEAC() {
+      return this.eAC;
+    }
+
+    public liststatus_result setEAC(AccessControlException eAC) {
+      this.eAC = eAC;
+      return this;
+    }
+
+    public void unsetEAC() {
+      this.eAC = null;
+    }
+
+    /** Returns true if field eAC is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAC() {
+      return this.eAC != null;
+    }
+
+    public void setEACIsSet(boolean value) {
+      if (!value) {
+        this.eAC = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -7978,6 +8161,14 @@ public class MasterService {
         }
         break;
 
+      case E_AC:
+        if (value == null) {
+          unsetEAC();
+        } else {
+          setEAC((AccessControlException)value);
+        }
+        break;
+
       }
     }
 
@@ -7991,6 +8182,9 @@ public class MasterService {
 
       case E_F:
         return getEF();
+
+      case E_AC:
+        return getEAC();
 
       }
       throw new IllegalStateException();
@@ -8009,6 +8203,8 @@ public class MasterService {
         return isSetEI();
       case E_F:
         return isSetEF();
+      case E_AC:
+        return isSetEAC();
       }
       throw new IllegalStateException();
     }
@@ -8050,6 +8246,15 @@ public class MasterService {
         if (!(this_present_eF && that_present_eF))
           return false;
         if (!this.eF.equals(that.eF))
+          return false;
+      }
+
+      boolean this_present_eAC = true && this.isSetEAC();
+      boolean that_present_eAC = true && that.isSetEAC();
+      if (this_present_eAC || that_present_eAC) {
+        if (!(this_present_eAC && that_present_eAC))
+          return false;
+        if (!this.eAC.equals(that.eAC))
           return false;
       }
 
@@ -8099,6 +8304,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetEAC()).compareTo(other.isSetEAC());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAC()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAC, other.eAC);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -8140,6 +8355,14 @@ public class MasterService {
         sb.append("null");
       } else {
         sb.append(this.eF);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAC:");
+      if (this.eAC == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAC);
       }
       first = false;
       sb.append(")");
@@ -8222,6 +8445,15 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 3: // E_AC
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAC = new AccessControlException();
+                struct.eAC.read(iprot);
+                struct.setEACIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -8259,6 +8491,11 @@ public class MasterService {
           struct.eF.write(oprot);
           oprot.writeFieldEnd();
         }
+        if (struct.eAC != null) {
+          oprot.writeFieldBegin(E_AC_FIELD_DESC);
+          struct.eAC.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -8286,7 +8523,10 @@ public class MasterService {
         if (struct.isSetEF()) {
           optionals.set(2);
         }
-        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetEAC()) {
+          optionals.set(3);
+        }
+        oprot.writeBitSet(optionals, 4);
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
@@ -8302,12 +8542,15 @@ public class MasterService {
         if (struct.isSetEF()) {
           struct.eF.write(oprot);
         }
+        if (struct.isSetEAC()) {
+          struct.eAC.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, liststatus_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(4);
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list61 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
@@ -8331,6 +8574,11 @@ public class MasterService {
           struct.eF = new FileDoesNotExistException();
           struct.eF.read(iprot);
           struct.setEFIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.eAC = new AccessControlException();
+          struct.eAC.read(iprot);
+          struct.setEACIsSet(true);
         }
       }
     }
@@ -18478,6 +18726,7 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TField E_B_FIELD_DESC = new org.apache.thrift.protocol.TField("eB", org.apache.thrift.protocol.TType.STRUCT, (short)3);
     private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)4);
     private static final org.apache.thrift.protocol.TField E_T_FIELD_DESC = new org.apache.thrift.protocol.TField("eT", org.apache.thrift.protocol.TType.STRUCT, (short)5);
+    private static final org.apache.thrift.protocol.TField E_AC_FIELD_DESC = new org.apache.thrift.protocol.TField("eAC", org.apache.thrift.protocol.TType.STRUCT, (short)6);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -18491,6 +18740,7 @@ public class MasterService {
     public BlockInfoException eB; // required
     public SuspectedFileSizeException eS; // required
     public TachyonException eT; // required
+    public AccessControlException eAC; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -18499,7 +18749,8 @@ public class MasterService {
       E_I((short)2, "eI"),
       E_B((short)3, "eB"),
       E_S((short)4, "eS"),
-      E_T((short)5, "eT");
+      E_T((short)5, "eT"),
+      E_AC((short)6, "eAC");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -18526,6 +18777,8 @@ public class MasterService {
             return E_S;
           case 5: // E_T
             return E_T;
+          case 6: // E_AC
+            return E_AC;
           default:
             return null;
         }
@@ -18583,6 +18836,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_T, new org.apache.thrift.meta_data.FieldMetaData("eT", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AC, new org.apache.thrift.meta_data.FieldMetaData("eAC", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_createFile_result.class, metaDataMap);
     }
@@ -18596,7 +18851,8 @@ public class MasterService {
       InvalidPathException eI,
       BlockInfoException eB,
       SuspectedFileSizeException eS,
-      TachyonException eT)
+      TachyonException eT,
+      AccessControlException eAC)
     {
       this();
       this.success = success;
@@ -18606,6 +18862,7 @@ public class MasterService {
       this.eB = eB;
       this.eS = eS;
       this.eT = eT;
+      this.eAC = eAC;
     }
 
     /**
@@ -18629,6 +18886,9 @@ public class MasterService {
       if (other.isSetET()) {
         this.eT = new TachyonException(other.eT);
       }
+      if (other.isSetEAC()) {
+        this.eAC = new AccessControlException(other.eAC);
+      }
     }
 
     public user_createFile_result deepCopy() {
@@ -18644,6 +18904,7 @@ public class MasterService {
       this.eB = null;
       this.eS = null;
       this.eT = null;
+      this.eAC = null;
     }
 
     public int getSuccess() {
@@ -18789,6 +19050,30 @@ public class MasterService {
       }
     }
 
+    public AccessControlException getEAC() {
+      return this.eAC;
+    }
+
+    public user_createFile_result setEAC(AccessControlException eAC) {
+      this.eAC = eAC;
+      return this;
+    }
+
+    public void unsetEAC() {
+      this.eAC = null;
+    }
+
+    /** Returns true if field eAC is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAC() {
+      return this.eAC != null;
+    }
+
+    public void setEACIsSet(boolean value) {
+      if (!value) {
+        this.eAC = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -18839,6 +19124,14 @@ public class MasterService {
         }
         break;
 
+      case E_AC:
+        if (value == null) {
+          unsetEAC();
+        } else {
+          setEAC((AccessControlException)value);
+        }
+        break;
+
       }
     }
 
@@ -18861,6 +19154,9 @@ public class MasterService {
 
       case E_T:
         return getET();
+
+      case E_AC:
+        return getEAC();
 
       }
       throw new IllegalStateException();
@@ -18885,6 +19181,8 @@ public class MasterService {
         return isSetES();
       case E_T:
         return isSetET();
+      case E_AC:
+        return isSetEAC();
       }
       throw new IllegalStateException();
     }
@@ -18953,6 +19251,15 @@ public class MasterService {
         if (!(this_present_eT && that_present_eT))
           return false;
         if (!this.eT.equals(that.eT))
+          return false;
+      }
+
+      boolean this_present_eAC = true && this.isSetEAC();
+      boolean that_present_eAC = true && that.isSetEAC();
+      if (this_present_eAC || that_present_eAC) {
+        if (!(this_present_eAC && that_present_eAC))
+          return false;
+        if (!this.eAC.equals(that.eAC))
           return false;
       }
 
@@ -19032,6 +19339,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetEAC()).compareTo(other.isSetEAC());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAC()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAC, other.eAC);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -19093,6 +19410,14 @@ public class MasterService {
         sb.append("null");
       } else {
         sb.append(this.eT);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAC:");
+      if (this.eAC == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAC);
       }
       first = false;
       sb.append(")");
@@ -19193,6 +19518,15 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 6: // E_AC
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAC = new AccessControlException();
+                struct.eAC.read(iprot);
+                struct.setEACIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -19238,6 +19572,11 @@ public class MasterService {
           struct.eT.write(oprot);
           oprot.writeFieldEnd();
         }
+        if (struct.eAC != null) {
+          oprot.writeFieldBegin(E_AC_FIELD_DESC);
+          struct.eAC.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -19274,7 +19613,10 @@ public class MasterService {
         if (struct.isSetET()) {
           optionals.set(5);
         }
-        oprot.writeBitSet(optionals, 6);
+        if (struct.isSetEAC()) {
+          optionals.set(6);
+        }
+        oprot.writeBitSet(optionals, 7);
         if (struct.isSetSuccess()) {
           oprot.writeI32(struct.success);
         }
@@ -19293,12 +19635,15 @@ public class MasterService {
         if (struct.isSetET()) {
           struct.eT.write(oprot);
         }
+        if (struct.isSetEAC()) {
+          struct.eAC.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_createFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(6);
+        BitSet incoming = iprot.readBitSet(7);
         if (incoming.get(0)) {
           struct.success = iprot.readI32();
           struct.setSuccessIsSet(true);
@@ -19327,6 +19672,11 @@ public class MasterService {
           struct.eT = new TachyonException();
           struct.eT.read(iprot);
           struct.setETIsSet(true);
+        }
+        if (incoming.get(6)) {
+          struct.eAC = new AccessControlException();
+          struct.eAC.read(iprot);
+          struct.setEACIsSet(true);
         }
       }
     }
@@ -23721,6 +24071,7 @@ public class MasterService {
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_A_FIELD_DESC = new org.apache.thrift.protocol.TField("eA", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -23730,11 +24081,13 @@ public class MasterService {
 
     public ClientFileInfo success; // required
     public InvalidPathException eI; // required
+    public AccessControlException eA; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E_I((short)1, "eI");
+      E_I((short)1, "eI"),
+      E_A((short)2, "eA");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -23753,6 +24106,8 @@ public class MasterService {
             return SUCCESS;
           case 1: // E_I
             return E_I;
+          case 2: // E_A
+            return E_A;
           default:
             return null;
         }
@@ -23800,6 +24155,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientFileInfo.class)));
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_A, new org.apache.thrift.meta_data.FieldMetaData("eA", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileStatus_result.class, metaDataMap);
     }
@@ -23809,11 +24166,13 @@ public class MasterService {
 
     public getFileStatus_result(
       ClientFileInfo success,
-      InvalidPathException eI)
+      InvalidPathException eI,
+      AccessControlException eA)
     {
       this();
       this.success = success;
       this.eI = eI;
+      this.eA = eA;
     }
 
     /**
@@ -23826,6 +24185,9 @@ public class MasterService {
       if (other.isSetEI()) {
         this.eI = new InvalidPathException(other.eI);
       }
+      if (other.isSetEA()) {
+        this.eA = new AccessControlException(other.eA);
+      }
     }
 
     public getFileStatus_result deepCopy() {
@@ -23836,6 +24198,7 @@ public class MasterService {
     public void clear() {
       this.success = null;
       this.eI = null;
+      this.eA = null;
     }
 
     public ClientFileInfo getSuccess() {
@@ -23886,6 +24249,30 @@ public class MasterService {
       }
     }
 
+    public AccessControlException getEA() {
+      return this.eA;
+    }
+
+    public getFileStatus_result setEA(AccessControlException eA) {
+      this.eA = eA;
+      return this;
+    }
+
+    public void unsetEA() {
+      this.eA = null;
+    }
+
+    /** Returns true if field eA is set (has been assigned a value) and false otherwise */
+    public boolean isSetEA() {
+      return this.eA != null;
+    }
+
+    public void setEAIsSet(boolean value) {
+      if (!value) {
+        this.eA = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -23904,6 +24291,14 @@ public class MasterService {
         }
         break;
 
+      case E_A:
+        if (value == null) {
+          unsetEA();
+        } else {
+          setEA((AccessControlException)value);
+        }
+        break;
+
       }
     }
 
@@ -23914,6 +24309,9 @@ public class MasterService {
 
       case E_I:
         return getEI();
+
+      case E_A:
+        return getEA();
 
       }
       throw new IllegalStateException();
@@ -23930,6 +24328,8 @@ public class MasterService {
         return isSetSuccess();
       case E_I:
         return isSetEI();
+      case E_A:
+        return isSetEA();
       }
       throw new IllegalStateException();
     }
@@ -23962,6 +24362,15 @@ public class MasterService {
         if (!(this_present_eI && that_present_eI))
           return false;
         if (!this.eI.equals(that.eI))
+          return false;
+      }
+
+      boolean this_present_eA = true && this.isSetEA();
+      boolean that_present_eA = true && that.isSetEA();
+      if (this_present_eA || that_present_eA) {
+        if (!(this_present_eA && that_present_eA))
+          return false;
+        if (!this.eA.equals(that.eA))
           return false;
       }
 
@@ -24001,6 +24410,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetEA()).compareTo(other.isSetEA());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEA()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eA, other.eA);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -24034,6 +24453,14 @@ public class MasterService {
         sb.append("null");
       } else {
         sb.append(this.eI);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eA:");
+      if (this.eA == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eA);
       }
       first = false;
       sb.append(")");
@@ -24100,6 +24527,15 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // E_A
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eA = new AccessControlException();
+                struct.eA.read(iprot);
+                struct.setEAIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -24123,6 +24559,11 @@ public class MasterService {
         if (struct.eI != null) {
           oprot.writeFieldBegin(E_I_FIELD_DESC);
           struct.eI.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eA != null) {
+          oprot.writeFieldBegin(E_A_FIELD_DESC);
+          struct.eA.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -24149,19 +24590,25 @@ public class MasterService {
         if (struct.isSetEI()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetEA()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           struct.success.write(oprot);
         }
         if (struct.isSetEI()) {
           struct.eI.write(oprot);
         }
+        if (struct.isSetEA()) {
+          struct.eA.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getFileStatus_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.success = new ClientFileInfo();
           struct.success.read(iprot);
@@ -24171,6 +24618,11 @@ public class MasterService {
           struct.eI = new InvalidPathException();
           struct.eI.read(iprot);
           struct.setEIIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.eA = new AccessControlException();
+          struct.eA.read(iprot);
+          struct.setEAIsSet(true);
         }
       }
     }
@@ -26707,6 +27159,7 @@ public class MasterService {
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_AC_FIELD_DESC = new org.apache.thrift.protocol.TField("eAC", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -26716,11 +27169,13 @@ public class MasterService {
 
     public boolean success; // required
     public TachyonException e; // required
+    public AccessControlException eAC; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e");
+      E((short)1, "e"),
+      E_AC((short)2, "eAC");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -26739,6 +27194,8 @@ public class MasterService {
             return SUCCESS;
           case 1: // E
             return E;
+          case 2: // E_AC
+            return E_AC;
           default:
             return null;
         }
@@ -26788,6 +27245,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AC, new org.apache.thrift.meta_data.FieldMetaData("eAC", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_delete_result.class, metaDataMap);
     }
@@ -26797,12 +27256,14 @@ public class MasterService {
 
     public user_delete_result(
       boolean success,
-      TachyonException e)
+      TachyonException e,
+      AccessControlException eAC)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
       this.e = e;
+      this.eAC = eAC;
     }
 
     /**
@@ -26813,6 +27274,9 @@ public class MasterService {
       this.success = other.success;
       if (other.isSetE()) {
         this.e = new TachyonException(other.e);
+      }
+      if (other.isSetEAC()) {
+        this.eAC = new AccessControlException(other.eAC);
       }
     }
 
@@ -26825,6 +27289,7 @@ public class MasterService {
       setSuccessIsSet(false);
       this.success = false;
       this.e = null;
+      this.eAC = null;
     }
 
     public boolean isSuccess() {
@@ -26874,6 +27339,30 @@ public class MasterService {
       }
     }
 
+    public AccessControlException getEAC() {
+      return this.eAC;
+    }
+
+    public user_delete_result setEAC(AccessControlException eAC) {
+      this.eAC = eAC;
+      return this;
+    }
+
+    public void unsetEAC() {
+      this.eAC = null;
+    }
+
+    /** Returns true if field eAC is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAC() {
+      return this.eAC != null;
+    }
+
+    public void setEACIsSet(boolean value) {
+      if (!value) {
+        this.eAC = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -26892,6 +27381,14 @@ public class MasterService {
         }
         break;
 
+      case E_AC:
+        if (value == null) {
+          unsetEAC();
+        } else {
+          setEAC((AccessControlException)value);
+        }
+        break;
+
       }
     }
 
@@ -26902,6 +27399,9 @@ public class MasterService {
 
       case E:
         return getE();
+
+      case E_AC:
+        return getEAC();
 
       }
       throw new IllegalStateException();
@@ -26918,6 +27418,8 @@ public class MasterService {
         return isSetSuccess();
       case E:
         return isSetE();
+      case E_AC:
+        return isSetEAC();
       }
       throw new IllegalStateException();
     }
@@ -26950,6 +27452,15 @@ public class MasterService {
         if (!(this_present_e && that_present_e))
           return false;
         if (!this.e.equals(that.e))
+          return false;
+      }
+
+      boolean this_present_eAC = true && this.isSetEAC();
+      boolean that_present_eAC = true && that.isSetEAC();
+      if (this_present_eAC || that_present_eAC) {
+        if (!(this_present_eAC && that_present_eAC))
+          return false;
+        if (!this.eAC.equals(that.eAC))
           return false;
       }
 
@@ -26989,6 +27500,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetEAC()).compareTo(other.isSetEAC());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAC()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAC, other.eAC);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -27018,6 +27539,14 @@ public class MasterService {
         sb.append("null");
       } else {
         sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAC:");
+      if (this.eAC == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAC);
       }
       first = false;
       sb.append(")");
@@ -27082,6 +27611,15 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // E_AC
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAC = new AccessControlException();
+                struct.eAC.read(iprot);
+                struct.setEACIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -27105,6 +27643,11 @@ public class MasterService {
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eAC != null) {
+          oprot.writeFieldBegin(E_AC_FIELD_DESC);
+          struct.eAC.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -27131,19 +27674,25 @@ public class MasterService {
         if (struct.isSetE()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetEAC()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
         }
+        if (struct.isSetEAC()) {
+          struct.eAC.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_delete_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
@@ -27152,6 +27701,11 @@ public class MasterService {
           struct.e = new TachyonException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.eAC = new AccessControlException();
+          struct.eAC.read(iprot);
+          struct.setEACIsSet(true);
         }
       }
     }
@@ -27717,6 +28271,7 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TField E_A_FIELD_DESC = new org.apache.thrift.protocol.TField("eA", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)2);
     private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_AC_FIELD_DESC = new org.apache.thrift.protocol.TField("eAC", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -27728,13 +28283,15 @@ public class MasterService {
     public FileAlreadyExistException eA; // required
     public FileDoesNotExistException eF; // required
     public InvalidPathException eI; // required
+    public AccessControlException eAC; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
       E_A((short)1, "eA"),
       E_F((short)2, "eF"),
-      E_I((short)3, "eI");
+      E_I((short)3, "eI"),
+      E_AC((short)4, "eAC");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -27757,6 +28314,8 @@ public class MasterService {
             return E_F;
           case 3: // E_I
             return E_I;
+          case 4: // E_AC
+            return E_AC;
           default:
             return null;
         }
@@ -27810,6 +28369,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AC, new org.apache.thrift.meta_data.FieldMetaData("eAC", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_rename_result.class, metaDataMap);
     }
@@ -27821,7 +28382,8 @@ public class MasterService {
       boolean success,
       FileAlreadyExistException eA,
       FileDoesNotExistException eF,
-      InvalidPathException eI)
+      InvalidPathException eI,
+      AccessControlException eAC)
     {
       this();
       this.success = success;
@@ -27829,6 +28391,7 @@ public class MasterService {
       this.eA = eA;
       this.eF = eF;
       this.eI = eI;
+      this.eAC = eAC;
     }
 
     /**
@@ -27846,6 +28409,9 @@ public class MasterService {
       if (other.isSetEI()) {
         this.eI = new InvalidPathException(other.eI);
       }
+      if (other.isSetEAC()) {
+        this.eAC = new AccessControlException(other.eAC);
+      }
     }
 
     public user_rename_result deepCopy() {
@@ -27859,6 +28425,7 @@ public class MasterService {
       this.eA = null;
       this.eF = null;
       this.eI = null;
+      this.eAC = null;
     }
 
     public boolean isSuccess() {
@@ -27956,6 +28523,30 @@ public class MasterService {
       }
     }
 
+    public AccessControlException getEAC() {
+      return this.eAC;
+    }
+
+    public user_rename_result setEAC(AccessControlException eAC) {
+      this.eAC = eAC;
+      return this;
+    }
+
+    public void unsetEAC() {
+      this.eAC = null;
+    }
+
+    /** Returns true if field eAC is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAC() {
+      return this.eAC != null;
+    }
+
+    public void setEACIsSet(boolean value) {
+      if (!value) {
+        this.eAC = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -27990,6 +28581,14 @@ public class MasterService {
         }
         break;
 
+      case E_AC:
+        if (value == null) {
+          unsetEAC();
+        } else {
+          setEAC((AccessControlException)value);
+        }
+        break;
+
       }
     }
 
@@ -28006,6 +28605,9 @@ public class MasterService {
 
       case E_I:
         return getEI();
+
+      case E_AC:
+        return getEAC();
 
       }
       throw new IllegalStateException();
@@ -28026,6 +28628,8 @@ public class MasterService {
         return isSetEF();
       case E_I:
         return isSetEI();
+      case E_AC:
+        return isSetEAC();
       }
       throw new IllegalStateException();
     }
@@ -28076,6 +28680,15 @@ public class MasterService {
         if (!(this_present_eI && that_present_eI))
           return false;
         if (!this.eI.equals(that.eI))
+          return false;
+      }
+
+      boolean this_present_eAC = true && this.isSetEAC();
+      boolean that_present_eAC = true && that.isSetEAC();
+      if (this_present_eAC || that_present_eAC) {
+        if (!(this_present_eAC && that_present_eAC))
+          return false;
+        if (!this.eAC.equals(that.eAC))
           return false;
       }
 
@@ -28135,6 +28748,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetEAC()).compareTo(other.isSetEAC());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAC()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAC, other.eAC);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -28180,6 +28803,14 @@ public class MasterService {
         sb.append("null");
       } else {
         sb.append(this.eI);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAC:");
+      if (this.eAC == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAC);
       }
       first = false;
       sb.append(")");
@@ -28262,6 +28893,15 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 4: // E_AC
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAC = new AccessControlException();
+                struct.eAC.read(iprot);
+                struct.setEACIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -28297,6 +28937,11 @@ public class MasterService {
           struct.eI.write(oprot);
           oprot.writeFieldEnd();
         }
+        if (struct.eAC != null) {
+          oprot.writeFieldBegin(E_AC_FIELD_DESC);
+          struct.eAC.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -28327,7 +28972,10 @@ public class MasterService {
         if (struct.isSetEI()) {
           optionals.set(3);
         }
-        oprot.writeBitSet(optionals, 4);
+        if (struct.isSetEAC()) {
+          optionals.set(4);
+        }
+        oprot.writeBitSet(optionals, 5);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
@@ -28340,12 +28988,15 @@ public class MasterService {
         if (struct.isSetEI()) {
           struct.eI.write(oprot);
         }
+        if (struct.isSetEAC()) {
+          struct.eAC.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_rename_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(4);
+        BitSet incoming = iprot.readBitSet(5);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
@@ -28364,6 +29015,11 @@ public class MasterService {
           struct.eI = new InvalidPathException();
           struct.eI.read(iprot);
           struct.setEIIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.eAC = new AccessControlException();
+          struct.eAC.read(iprot);
+          struct.setEACIsSet(true);
         }
       }
     }
@@ -29631,6 +30287,7 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TField E_R_FIELD_DESC = new org.apache.thrift.protocol.TField("eR", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)2);
     private static final org.apache.thrift.protocol.TField E_T_FIELD_DESC = new org.apache.thrift.protocol.TField("eT", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_AC_FIELD_DESC = new org.apache.thrift.protocol.TField("eAC", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -29642,13 +30299,15 @@ public class MasterService {
     public FileAlreadyExistException eR; // required
     public InvalidPathException eI; // required
     public TachyonException eT; // required
+    public AccessControlException eAC; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
       E_R((short)1, "eR"),
       E_I((short)2, "eI"),
-      E_T((short)3, "eT");
+      E_T((short)3, "eT"),
+      E_AC((short)4, "eAC");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -29671,6 +30330,8 @@ public class MasterService {
             return E_I;
           case 3: // E_T
             return E_T;
+          case 4: // E_AC
+            return E_AC;
           default:
             return null;
         }
@@ -29724,6 +30385,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_T, new org.apache.thrift.meta_data.FieldMetaData("eT", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AC, new org.apache.thrift.meta_data.FieldMetaData("eAC", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_mkdirs_result.class, metaDataMap);
     }
@@ -29735,7 +30398,8 @@ public class MasterService {
       boolean success,
       FileAlreadyExistException eR,
       InvalidPathException eI,
-      TachyonException eT)
+      TachyonException eT,
+      AccessControlException eAC)
     {
       this();
       this.success = success;
@@ -29743,6 +30407,7 @@ public class MasterService {
       this.eR = eR;
       this.eI = eI;
       this.eT = eT;
+      this.eAC = eAC;
     }
 
     /**
@@ -29760,6 +30425,9 @@ public class MasterService {
       if (other.isSetET()) {
         this.eT = new TachyonException(other.eT);
       }
+      if (other.isSetEAC()) {
+        this.eAC = new AccessControlException(other.eAC);
+      }
     }
 
     public user_mkdirs_result deepCopy() {
@@ -29773,6 +30441,7 @@ public class MasterService {
       this.eR = null;
       this.eI = null;
       this.eT = null;
+      this.eAC = null;
     }
 
     public boolean isSuccess() {
@@ -29870,6 +30539,30 @@ public class MasterService {
       }
     }
 
+    public AccessControlException getEAC() {
+      return this.eAC;
+    }
+
+    public user_mkdirs_result setEAC(AccessControlException eAC) {
+      this.eAC = eAC;
+      return this;
+    }
+
+    public void unsetEAC() {
+      this.eAC = null;
+    }
+
+    /** Returns true if field eAC is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAC() {
+      return this.eAC != null;
+    }
+
+    public void setEACIsSet(boolean value) {
+      if (!value) {
+        this.eAC = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -29904,6 +30597,14 @@ public class MasterService {
         }
         break;
 
+      case E_AC:
+        if (value == null) {
+          unsetEAC();
+        } else {
+          setEAC((AccessControlException)value);
+        }
+        break;
+
       }
     }
 
@@ -29920,6 +30621,9 @@ public class MasterService {
 
       case E_T:
         return getET();
+
+      case E_AC:
+        return getEAC();
 
       }
       throw new IllegalStateException();
@@ -29940,6 +30644,8 @@ public class MasterService {
         return isSetEI();
       case E_T:
         return isSetET();
+      case E_AC:
+        return isSetEAC();
       }
       throw new IllegalStateException();
     }
@@ -29990,6 +30696,15 @@ public class MasterService {
         if (!(this_present_eT && that_present_eT))
           return false;
         if (!this.eT.equals(that.eT))
+          return false;
+      }
+
+      boolean this_present_eAC = true && this.isSetEAC();
+      boolean that_present_eAC = true && that.isSetEAC();
+      if (this_present_eAC || that_present_eAC) {
+        if (!(this_present_eAC && that_present_eAC))
+          return false;
+        if (!this.eAC.equals(that.eAC))
           return false;
       }
 
@@ -30049,6 +30764,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetEAC()).compareTo(other.isSetEAC());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAC()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAC, other.eAC);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -30094,6 +30819,14 @@ public class MasterService {
         sb.append("null");
       } else {
         sb.append(this.eT);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAC:");
+      if (this.eAC == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAC);
       }
       first = false;
       sb.append(")");
@@ -30176,6 +30909,15 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 4: // E_AC
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAC = new AccessControlException();
+                struct.eAC.read(iprot);
+                struct.setEACIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -30211,6 +30953,11 @@ public class MasterService {
           struct.eT.write(oprot);
           oprot.writeFieldEnd();
         }
+        if (struct.eAC != null) {
+          oprot.writeFieldBegin(E_AC_FIELD_DESC);
+          struct.eAC.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -30241,7 +30988,10 @@ public class MasterService {
         if (struct.isSetET()) {
           optionals.set(3);
         }
-        oprot.writeBitSet(optionals, 4);
+        if (struct.isSetEAC()) {
+          optionals.set(4);
+        }
+        oprot.writeBitSet(optionals, 5);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
@@ -30254,12 +31004,15 @@ public class MasterService {
         if (struct.isSetET()) {
           struct.eT.write(oprot);
         }
+        if (struct.isSetEAC()) {
+          struct.eAC.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_mkdirs_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(4);
+        BitSet incoming = iprot.readBitSet(5);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
@@ -30278,6 +31031,11 @@ public class MasterService {
           struct.eT = new TachyonException();
           struct.eT.read(iprot);
           struct.setETIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.eAC = new AccessControlException();
+          struct.eAC.read(iprot);
+          struct.setEACIsSet(true);
         }
       }
     }
@@ -32253,6 +33011,10 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_setPermission_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField E_A_FIELD_DESC = new org.apache.thrift.protocol.TField("eA", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_AC_FIELD_DESC = new org.apache.thrift.protocol.TField("eAC", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -32261,10 +33023,18 @@ public class MasterService {
     }
 
     public boolean success; // required
+    public TachyonException eA; // required
+    public FileDoesNotExistException eF; // required
+    public InvalidPathException eI; // required
+    public AccessControlException eAC; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      E_A((short)1, "eA"),
+      E_F((short)2, "eF"),
+      E_I((short)3, "eI"),
+      E_AC((short)4, "eAC");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -32281,6 +33051,14 @@ public class MasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // E_A
+            return E_A;
+          case 2: // E_F
+            return E_F;
+          case 3: // E_I
+            return E_I;
+          case 4: // E_AC
+            return E_AC;
           default:
             return null;
         }
@@ -32328,6 +33106,14 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.E_A, new org.apache.thrift.meta_data.FieldMetaData("eA", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AC, new org.apache.thrift.meta_data.FieldMetaData("eAC", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_setPermission_result.class, metaDataMap);
     }
@@ -32336,11 +33122,19 @@ public class MasterService {
     }
 
     public user_setPermission_result(
-      boolean success)
+      boolean success,
+      TachyonException eA,
+      FileDoesNotExistException eF,
+      InvalidPathException eI,
+      AccessControlException eAC)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
+      this.eA = eA;
+      this.eF = eF;
+      this.eI = eI;
+      this.eAC = eAC;
     }
 
     /**
@@ -32349,6 +33143,18 @@ public class MasterService {
     public user_setPermission_result(user_setPermission_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
+      if (other.isSetEA()) {
+        this.eA = new TachyonException(other.eA);
+      }
+      if (other.isSetEF()) {
+        this.eF = new FileDoesNotExistException(other.eF);
+      }
+      if (other.isSetEI()) {
+        this.eI = new InvalidPathException(other.eI);
+      }
+      if (other.isSetEAC()) {
+        this.eAC = new AccessControlException(other.eAC);
+      }
     }
 
     public user_setPermission_result deepCopy() {
@@ -32359,6 +33165,10 @@ public class MasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
+      this.eA = null;
+      this.eF = null;
+      this.eI = null;
+      this.eAC = null;
     }
 
     public boolean isSuccess() {
@@ -32384,6 +33194,102 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
+    public TachyonException getEA() {
+      return this.eA;
+    }
+
+    public user_setPermission_result setEA(TachyonException eA) {
+      this.eA = eA;
+      return this;
+    }
+
+    public void unsetEA() {
+      this.eA = null;
+    }
+
+    /** Returns true if field eA is set (has been assigned a value) and false otherwise */
+    public boolean isSetEA() {
+      return this.eA != null;
+    }
+
+    public void setEAIsSet(boolean value) {
+      if (!value) {
+        this.eA = null;
+      }
+    }
+
+    public FileDoesNotExistException getEF() {
+      return this.eF;
+    }
+
+    public user_setPermission_result setEF(FileDoesNotExistException eF) {
+      this.eF = eF;
+      return this;
+    }
+
+    public void unsetEF() {
+      this.eF = null;
+    }
+
+    /** Returns true if field eF is set (has been assigned a value) and false otherwise */
+    public boolean isSetEF() {
+      return this.eF != null;
+    }
+
+    public void setEFIsSet(boolean value) {
+      if (!value) {
+        this.eF = null;
+      }
+    }
+
+    public InvalidPathException getEI() {
+      return this.eI;
+    }
+
+    public user_setPermission_result setEI(InvalidPathException eI) {
+      this.eI = eI;
+      return this;
+    }
+
+    public void unsetEI() {
+      this.eI = null;
+    }
+
+    /** Returns true if field eI is set (has been assigned a value) and false otherwise */
+    public boolean isSetEI() {
+      return this.eI != null;
+    }
+
+    public void setEIIsSet(boolean value) {
+      if (!value) {
+        this.eI = null;
+      }
+    }
+
+    public AccessControlException getEAC() {
+      return this.eAC;
+    }
+
+    public user_setPermission_result setEAC(AccessControlException eAC) {
+      this.eAC = eAC;
+      return this;
+    }
+
+    public void unsetEAC() {
+      this.eAC = null;
+    }
+
+    /** Returns true if field eAC is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAC() {
+      return this.eAC != null;
+    }
+
+    public void setEACIsSet(boolean value) {
+      if (!value) {
+        this.eAC = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -32394,6 +33300,38 @@ public class MasterService {
         }
         break;
 
+      case E_A:
+        if (value == null) {
+          unsetEA();
+        } else {
+          setEA((TachyonException)value);
+        }
+        break;
+
+      case E_F:
+        if (value == null) {
+          unsetEF();
+        } else {
+          setEF((FileDoesNotExistException)value);
+        }
+        break;
+
+      case E_I:
+        if (value == null) {
+          unsetEI();
+        } else {
+          setEI((InvalidPathException)value);
+        }
+        break;
+
+      case E_AC:
+        if (value == null) {
+          unsetEAC();
+        } else {
+          setEAC((AccessControlException)value);
+        }
+        break;
+
       }
     }
 
@@ -32401,6 +33339,18 @@ public class MasterService {
       switch (field) {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
+
+      case E_A:
+        return getEA();
+
+      case E_F:
+        return getEF();
+
+      case E_I:
+        return getEI();
+
+      case E_AC:
+        return getEAC();
 
       }
       throw new IllegalStateException();
@@ -32415,6 +33365,14 @@ public class MasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case E_A:
+        return isSetEA();
+      case E_F:
+        return isSetEF();
+      case E_I:
+        return isSetEI();
+      case E_AC:
+        return isSetEAC();
       }
       throw new IllegalStateException();
     }
@@ -32438,6 +33396,42 @@ public class MasterService {
         if (!(this_present_success && that_present_success))
           return false;
         if (this.success != that.success)
+          return false;
+      }
+
+      boolean this_present_eA = true && this.isSetEA();
+      boolean that_present_eA = true && that.isSetEA();
+      if (this_present_eA || that_present_eA) {
+        if (!(this_present_eA && that_present_eA))
+          return false;
+        if (!this.eA.equals(that.eA))
+          return false;
+      }
+
+      boolean this_present_eF = true && this.isSetEF();
+      boolean that_present_eF = true && that.isSetEF();
+      if (this_present_eF || that_present_eF) {
+        if (!(this_present_eF && that_present_eF))
+          return false;
+        if (!this.eF.equals(that.eF))
+          return false;
+      }
+
+      boolean this_present_eI = true && this.isSetEI();
+      boolean that_present_eI = true && that.isSetEI();
+      if (this_present_eI || that_present_eI) {
+        if (!(this_present_eI && that_present_eI))
+          return false;
+        if (!this.eI.equals(that.eI))
+          return false;
+      }
+
+      boolean this_present_eAC = true && this.isSetEAC();
+      boolean that_present_eAC = true && that.isSetEAC();
+      if (this_present_eAC || that_present_eAC) {
+        if (!(this_present_eAC && that_present_eAC))
+          return false;
+        if (!this.eAC.equals(that.eAC))
           return false;
       }
 
@@ -32467,6 +33461,46 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetEA()).compareTo(other.isSetEA());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEA()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eA, other.eA);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEF()).compareTo(other.isSetEF());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEF()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eF, other.eF);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEI()).compareTo(other.isSetEI());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEI()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eI, other.eI);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEAC()).compareTo(other.isSetEAC());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAC()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAC, other.eAC);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -32489,6 +33523,38 @@ public class MasterService {
 
       sb.append("success:");
       sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eA:");
+      if (this.eA == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eA);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eF:");
+      if (this.eF == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eF);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eI:");
+      if (this.eI == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eI);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAC:");
+      if (this.eAC == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAC);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -32543,6 +33609,42 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // E_A
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eA = new TachyonException();
+                struct.eA.read(iprot);
+                struct.setEAIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // E_F
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eF = new FileDoesNotExistException();
+                struct.eF.read(iprot);
+                struct.setEFIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // E_I
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eI = new InvalidPathException();
+                struct.eI.read(iprot);
+                struct.setEIIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // E_AC
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAC = new AccessControlException();
+                struct.eAC.read(iprot);
+                struct.setEACIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -32561,6 +33663,26 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           oprot.writeBool(struct.success);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eA != null) {
+          oprot.writeFieldBegin(E_A_FIELD_DESC);
+          struct.eA.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eF != null) {
+          oprot.writeFieldBegin(E_F_FIELD_DESC);
+          struct.eF.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eI != null) {
+          oprot.writeFieldBegin(E_I_FIELD_DESC);
+          struct.eI.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eAC != null) {
+          oprot.writeFieldBegin(E_AC_FIELD_DESC);
+          struct.eAC.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -32584,19 +33706,63 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetEA()) {
+          optionals.set(1);
+        }
+        if (struct.isSetEF()) {
+          optionals.set(2);
+        }
+        if (struct.isSetEI()) {
+          optionals.set(3);
+        }
+        if (struct.isSetEAC()) {
+          optionals.set(4);
+        }
+        oprot.writeBitSet(optionals, 5);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
+        }
+        if (struct.isSetEA()) {
+          struct.eA.write(oprot);
+        }
+        if (struct.isSetEF()) {
+          struct.eF.write(oprot);
+        }
+        if (struct.isSetEI()) {
+          struct.eI.write(oprot);
+        }
+        if (struct.isSetEAC()) {
+          struct.eAC.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_setPermission_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(5);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.eA = new TachyonException();
+          struct.eA.read(iprot);
+          struct.setEAIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.eF = new FileDoesNotExistException();
+          struct.eF.read(iprot);
+          struct.setEFIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.eI = new InvalidPathException();
+          struct.eI.read(iprot);
+          struct.setEIIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.eAC = new AccessControlException();
+          struct.eAC.read(iprot);
+          struct.setEACIsSet(true);
         }
       }
     }
@@ -33353,6 +34519,10 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_setOwner_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField E_A_FIELD_DESC = new org.apache.thrift.protocol.TField("eA", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_AC_FIELD_DESC = new org.apache.thrift.protocol.TField("eAC", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -33361,10 +34531,18 @@ public class MasterService {
     }
 
     public boolean success; // required
+    public TachyonException eA; // required
+    public FileDoesNotExistException eF; // required
+    public InvalidPathException eI; // required
+    public AccessControlException eAC; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      E_A((short)1, "eA"),
+      E_F((short)2, "eF"),
+      E_I((short)3, "eI"),
+      E_AC((short)4, "eAC");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -33381,6 +34559,14 @@ public class MasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // E_A
+            return E_A;
+          case 2: // E_F
+            return E_F;
+          case 3: // E_I
+            return E_I;
+          case 4: // E_AC
+            return E_AC;
           default:
             return null;
         }
@@ -33428,6 +34614,14 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.E_A, new org.apache.thrift.meta_data.FieldMetaData("eA", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AC, new org.apache.thrift.meta_data.FieldMetaData("eAC", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_setOwner_result.class, metaDataMap);
     }
@@ -33436,11 +34630,19 @@ public class MasterService {
     }
 
     public user_setOwner_result(
-      boolean success)
+      boolean success,
+      TachyonException eA,
+      FileDoesNotExistException eF,
+      InvalidPathException eI,
+      AccessControlException eAC)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
+      this.eA = eA;
+      this.eF = eF;
+      this.eI = eI;
+      this.eAC = eAC;
     }
 
     /**
@@ -33449,6 +34651,18 @@ public class MasterService {
     public user_setOwner_result(user_setOwner_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
+      if (other.isSetEA()) {
+        this.eA = new TachyonException(other.eA);
+      }
+      if (other.isSetEF()) {
+        this.eF = new FileDoesNotExistException(other.eF);
+      }
+      if (other.isSetEI()) {
+        this.eI = new InvalidPathException(other.eI);
+      }
+      if (other.isSetEAC()) {
+        this.eAC = new AccessControlException(other.eAC);
+      }
     }
 
     public user_setOwner_result deepCopy() {
@@ -33459,6 +34673,10 @@ public class MasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
+      this.eA = null;
+      this.eF = null;
+      this.eI = null;
+      this.eAC = null;
     }
 
     public boolean isSuccess() {
@@ -33484,6 +34702,102 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
+    public TachyonException getEA() {
+      return this.eA;
+    }
+
+    public user_setOwner_result setEA(TachyonException eA) {
+      this.eA = eA;
+      return this;
+    }
+
+    public void unsetEA() {
+      this.eA = null;
+    }
+
+    /** Returns true if field eA is set (has been assigned a value) and false otherwise */
+    public boolean isSetEA() {
+      return this.eA != null;
+    }
+
+    public void setEAIsSet(boolean value) {
+      if (!value) {
+        this.eA = null;
+      }
+    }
+
+    public FileDoesNotExistException getEF() {
+      return this.eF;
+    }
+
+    public user_setOwner_result setEF(FileDoesNotExistException eF) {
+      this.eF = eF;
+      return this;
+    }
+
+    public void unsetEF() {
+      this.eF = null;
+    }
+
+    /** Returns true if field eF is set (has been assigned a value) and false otherwise */
+    public boolean isSetEF() {
+      return this.eF != null;
+    }
+
+    public void setEFIsSet(boolean value) {
+      if (!value) {
+        this.eF = null;
+      }
+    }
+
+    public InvalidPathException getEI() {
+      return this.eI;
+    }
+
+    public user_setOwner_result setEI(InvalidPathException eI) {
+      this.eI = eI;
+      return this;
+    }
+
+    public void unsetEI() {
+      this.eI = null;
+    }
+
+    /** Returns true if field eI is set (has been assigned a value) and false otherwise */
+    public boolean isSetEI() {
+      return this.eI != null;
+    }
+
+    public void setEIIsSet(boolean value) {
+      if (!value) {
+        this.eI = null;
+      }
+    }
+
+    public AccessControlException getEAC() {
+      return this.eAC;
+    }
+
+    public user_setOwner_result setEAC(AccessControlException eAC) {
+      this.eAC = eAC;
+      return this;
+    }
+
+    public void unsetEAC() {
+      this.eAC = null;
+    }
+
+    /** Returns true if field eAC is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAC() {
+      return this.eAC != null;
+    }
+
+    public void setEACIsSet(boolean value) {
+      if (!value) {
+        this.eAC = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -33494,6 +34808,38 @@ public class MasterService {
         }
         break;
 
+      case E_A:
+        if (value == null) {
+          unsetEA();
+        } else {
+          setEA((TachyonException)value);
+        }
+        break;
+
+      case E_F:
+        if (value == null) {
+          unsetEF();
+        } else {
+          setEF((FileDoesNotExistException)value);
+        }
+        break;
+
+      case E_I:
+        if (value == null) {
+          unsetEI();
+        } else {
+          setEI((InvalidPathException)value);
+        }
+        break;
+
+      case E_AC:
+        if (value == null) {
+          unsetEAC();
+        } else {
+          setEAC((AccessControlException)value);
+        }
+        break;
+
       }
     }
 
@@ -33501,6 +34847,18 @@ public class MasterService {
       switch (field) {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
+
+      case E_A:
+        return getEA();
+
+      case E_F:
+        return getEF();
+
+      case E_I:
+        return getEI();
+
+      case E_AC:
+        return getEAC();
 
       }
       throw new IllegalStateException();
@@ -33515,6 +34873,14 @@ public class MasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case E_A:
+        return isSetEA();
+      case E_F:
+        return isSetEF();
+      case E_I:
+        return isSetEI();
+      case E_AC:
+        return isSetEAC();
       }
       throw new IllegalStateException();
     }
@@ -33538,6 +34904,42 @@ public class MasterService {
         if (!(this_present_success && that_present_success))
           return false;
         if (this.success != that.success)
+          return false;
+      }
+
+      boolean this_present_eA = true && this.isSetEA();
+      boolean that_present_eA = true && that.isSetEA();
+      if (this_present_eA || that_present_eA) {
+        if (!(this_present_eA && that_present_eA))
+          return false;
+        if (!this.eA.equals(that.eA))
+          return false;
+      }
+
+      boolean this_present_eF = true && this.isSetEF();
+      boolean that_present_eF = true && that.isSetEF();
+      if (this_present_eF || that_present_eF) {
+        if (!(this_present_eF && that_present_eF))
+          return false;
+        if (!this.eF.equals(that.eF))
+          return false;
+      }
+
+      boolean this_present_eI = true && this.isSetEI();
+      boolean that_present_eI = true && that.isSetEI();
+      if (this_present_eI || that_present_eI) {
+        if (!(this_present_eI && that_present_eI))
+          return false;
+        if (!this.eI.equals(that.eI))
+          return false;
+      }
+
+      boolean this_present_eAC = true && this.isSetEAC();
+      boolean that_present_eAC = true && that.isSetEAC();
+      if (this_present_eAC || that_present_eAC) {
+        if (!(this_present_eAC && that_present_eAC))
+          return false;
+        if (!this.eAC.equals(that.eAC))
           return false;
       }
 
@@ -33567,6 +34969,46 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetEA()).compareTo(other.isSetEA());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEA()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eA, other.eA);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEF()).compareTo(other.isSetEF());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEF()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eF, other.eF);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEI()).compareTo(other.isSetEI());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEI()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eI, other.eI);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEAC()).compareTo(other.isSetEAC());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAC()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAC, other.eAC);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -33589,6 +35031,38 @@ public class MasterService {
 
       sb.append("success:");
       sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eA:");
+      if (this.eA == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eA);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eF:");
+      if (this.eF == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eF);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eI:");
+      if (this.eI == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eI);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAC:");
+      if (this.eAC == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAC);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -33643,6 +35117,42 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // E_A
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eA = new TachyonException();
+                struct.eA.read(iprot);
+                struct.setEAIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // E_F
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eF = new FileDoesNotExistException();
+                struct.eF.read(iprot);
+                struct.setEFIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // E_I
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eI = new InvalidPathException();
+                struct.eI.read(iprot);
+                struct.setEIIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // E_AC
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAC = new AccessControlException();
+                struct.eAC.read(iprot);
+                struct.setEACIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -33661,6 +35171,26 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           oprot.writeBool(struct.success);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eA != null) {
+          oprot.writeFieldBegin(E_A_FIELD_DESC);
+          struct.eA.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eF != null) {
+          oprot.writeFieldBegin(E_F_FIELD_DESC);
+          struct.eF.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eI != null) {
+          oprot.writeFieldBegin(E_I_FIELD_DESC);
+          struct.eI.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eAC != null) {
+          oprot.writeFieldBegin(E_AC_FIELD_DESC);
+          struct.eAC.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -33684,19 +35214,63 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetEA()) {
+          optionals.set(1);
+        }
+        if (struct.isSetEF()) {
+          optionals.set(2);
+        }
+        if (struct.isSetEI()) {
+          optionals.set(3);
+        }
+        if (struct.isSetEAC()) {
+          optionals.set(4);
+        }
+        oprot.writeBitSet(optionals, 5);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
+        }
+        if (struct.isSetEA()) {
+          struct.eA.write(oprot);
+        }
+        if (struct.isSetEF()) {
+          struct.eF.write(oprot);
+        }
+        if (struct.isSetEI()) {
+          struct.eI.write(oprot);
+        }
+        if (struct.isSetEAC()) {
+          struct.eAC.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_setOwner_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(5);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.eA = new TachyonException();
+          struct.eA.read(iprot);
+          struct.setEAIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.eF = new FileDoesNotExistException();
+          struct.eF.read(iprot);
+          struct.setEFIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.eI = new InvalidPathException();
+          struct.eI.read(iprot);
+          struct.setEIIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.eAC = new AccessControlException();
+          struct.eAC.read(iprot);
+          struct.setEACIsSet(true);
         }
       }
     }
