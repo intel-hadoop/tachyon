@@ -42,6 +42,8 @@ import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemHdfs;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
+import tachyon.security.SecurityUtil;
+import tachyon.security.UserGroupInformation;
 import tachyon.secutiry.authentication.AuthHelper;
 import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
@@ -219,7 +221,13 @@ public class TachyonMaster {
     return mZookeeperMode;
   }
 
-  private void login() throws IOException {
+  private void loginAsTachyonUser() throws IOException {
+    SecurityUtil.login(mTachyonConf);
+
+    LOG.info("MY_PATTERN: login user is " + UserGroupInformation.getTachyonLoginUser());
+  }
+
+  private void loginUnderFS() throws IOException {
     String masterKeytab = mTachyonConf.get(Constants.MASTER_KEYTAB_KEY, null);
     String masterPrincipal = mTachyonConf.get(Constants.MASTER_PRINCIPAL_KEY, null);
     if (masterKeytab == null || masterPrincipal == null) {
@@ -234,7 +242,8 @@ public class TachyonMaster {
   }
 
   private void setup() throws IOException, TTransportException {
-    login();
+    loginAsTachyonUser();
+    loginUnderFS();
     if (mZookeeperMode) {
       mEditLogProcessor.stop();
     }
