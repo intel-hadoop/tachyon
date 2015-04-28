@@ -892,10 +892,10 @@ public class TFsShell implements Closeable {
     // TODO: define the key of conf as a Constant.
     username = "intel";
     password = "123";
-    authType = "plain";
+    //authType = "simple";
     mTachyonConf.set("user", username);
     mTachyonConf.set("password", password);
-    mTachyonConf.set("auth", authType);
+    //mTachyonConf.set("tachyon.security.authentication", authType);
 
     TachyonFS tachyonFS = TachyonFS.get(new TachyonURI(qualifiedPath), mTachyonConf);
     return mCloser.register(tachyonFS);

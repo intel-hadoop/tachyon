@@ -246,7 +246,7 @@ public final class MasterClient implements Closeable {
   private TTransport createTransport() throws IOException {
     TTransport tTransport = null;
     try {
-      if (!"noSasl".equals(mTachyonConf.get("auth", "noSasl"))) {
+      if (!"noSasl".equals(mTachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION, "noSasl"))) {
         // handle specific secure connection
         // TODO: 1. Kerboros 2. delegation token
 
