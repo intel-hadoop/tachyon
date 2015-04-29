@@ -19,7 +19,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hdfs.server.namenode.FSNamesystem;
+import org.apache.hadoop.fs.permission.FsAction;
 
 import tachyon.master.Inode;
 import tachyon.master.InodesInPath;
@@ -106,8 +106,9 @@ public class FsPermissionChecker implements AccessControlEnforcer {
     if (mIsSuperUser) {
       return;
     }
+
     checkPermission(mFsOwner, mSupergroup, mAuthenticator, iip.getInodes(),
-        iip.getPathByNameArr(), iip.getFullPath(), iip.getAncestorIndex(),
+        iip.getPathByNameArr(), iip.getFullPath(), iip.getInodes().length - 2,
         ancestorAccess, parentAccess, access, doCheckOwner);
   }
 
@@ -151,6 +152,13 @@ public class FsPermissionChecker implements AccessControlEnforcer {
             + getUser() + " is not the owner of inode=" + inode);
   }
 
+  private void checkTraverse(Inode[] inodes, String path, int last)
+      throws AccessControlException {
+    for (int j = 0; j <= last; j++) {
+      check(inodes[j], path, AclPermission.EXECUTE);
+    }
+  }
+
   /** @return a string for throwing {@link AccessControlException} */
   private String toAccessControlString(Inode inode, String path, AclPermission access) {
     StringBuilder sb = new StringBuilder("Permission denied: ")
@@ -169,17 +177,18 @@ public class FsPermissionChecker implements AccessControlEnforcer {
       AuthenticationProvider authenticator, Inode[] inodes, String[] pathByNameArr, String path,
       int ancestorIndex, AclPermission ancestorAccess, AclPermission parentAccess,
       AclPermission access, boolean doCheckOwner) throws AccessControlException {
-    if (ancestorAccess != null) {
-      for (; ancestorIndex >= 0 ;ancestorIndex--) {
-        check(inodes, path, ancestorIndex, ancestorAccess);
-      }
+    for (; ancestorIndex >= 0 && inodes[ancestorIndex] == null; ancestorIndex-- ) {
+      checkTraverse(inodes, path, ancestorIndex);
     }
+
+    if (ancestorAccess != null && inodes.length > 1) {
+      check(inodes, path, ancestorIndex, ancestorAccess);
+    }
+
     if (parentAccess != null && inodes.length > 1) {
-      int parentIndex = inodes.length - 2;
-      for (; parentIndex >= 0; parentIndex--) {
-        check(inodes, path, parentIndex, parentAccess);
-      }
+      check(inodes, path, inodes.length - 2, parentAccess);
     }
+
     if (access != null && inodes.length > 0) {
       check(inodes[inodes.length - 1], path, access);
     }

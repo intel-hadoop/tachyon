@@ -29,6 +29,7 @@ import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
+import org.apache.hadoop.security.Groups;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,6 @@ public class UserGroupInformation {
 
   private static final String OS_LOGIN_MODULE_NAME;
   private static final Class<? extends Principal> OS_PRINCIPAL_CLASS;
-
   private static final boolean WINDOWS =
       System.getProperty("os.name").startsWith("Windows");
   private static final boolean IS_64_BIT =
@@ -210,9 +210,10 @@ public class UserGroupInformation {
     }
   }
 
-  public static User getTachyonLoginUser() {
+  public static User getTachyonLoginUser() throws IOException {
     if (sUser == null) {
       LOG.warn("login user is not found");
+
     }
     return sUser;
   }

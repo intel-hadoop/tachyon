@@ -23,10 +23,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
@@ -34,11 +36,12 @@ import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.OutStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.command.permission.ChmodParser;
 import tachyon.conf.TachyonConf;
+import tachyon.master.permission.AclUtil;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -66,6 +69,7 @@ public class TFsShell implements Closeable {
 
   private final Closer mCloser;
   private final TachyonConf mTachyonConf;
+  private final SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
   public TFsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
@@ -345,19 +349,7 @@ public class TFsShell implements Closeable {
     TachyonFS tachyonClient = createFS(path);
     List<ClientFileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
-    String format = "%-10s%-25s%-15s%-5s%n";
-    for (ClientFileInfo file : files) {
-      String inMemory = "";
-      if (!file.isFolder) {
-        if (100 == file.inMemoryPercentage) {
-          inMemory = "In Memory";
-        } else {
-          inMemory = "Not In Memory";
-        }
-      }
-      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
-          CommonUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
-    }
+    print(files);
     return 0;
   }
 
@@ -374,27 +366,86 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs lsr <path>");
       return -1;
     }
+    List<ClientFileInfo> files = Lists.newArrayList();
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    List<ClientFileInfo> files = tachyonClient.listStatus(path);
+    /*List<ClientFileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
-    String format = "%-10s%-25s%-15s%-5s%n";
     for (ClientFileInfo file : files) {
-      String inMemory = "";
-      if (!file.isFolder) {
-        if (100 == file.inMemoryPercentage) {
-          inMemory = "In Memory";
-        } else {
-          inMemory = "Not In Memory";
-        }
-      }
-      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
-          CommonUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
+      print(file);
       if (file.isFolder) {
         lsr(new String[] {"lsr", file.getPath()});
       }
-    }
+    }*/
+    lsrCore(tachyonClient, path.getPath(), files);
+    Collections.sort(files);
+    print(files);
     return 0;
+  }
+
+  private void lsrCore(TachyonFS client, String path, List<ClientFileInfo> returnFiles)
+      throws IOException {
+    List<ClientFileInfo> files = client.listStatus(new TachyonURI(path));
+    returnFiles.addAll(files);
+    for (ClientFileInfo file : files) {
+      if (file.isFolder) {
+        lsrCore(client, file.path, returnFiles);
+      }
+    }
+  }
+
+  /**
+   * Compute column widths and rebuild the format string
+   * @param items to find the max field width for each column
+   * @return the
+   */
+  private String adjustColumnWidths(List<ClientFileInfo> items) {
+    int maxLen = Integer.MIN_VALUE;
+    int maxOwner = Integer.MIN_VALUE;
+    int maxGroup = Integer.MIN_VALUE;
+
+    for (ClientFileInfo item : items) {
+      maxLen   = maxLength(maxLen, item.length);
+      maxOwner = maxLength(maxOwner, item.owner);
+      maxGroup = maxLength(maxGroup, item.group);
+    }
+
+    StringBuilder fmt = new StringBuilder();
+    fmt.append("%s%s "); // permission string
+    fmt.append((maxOwner > 0) ? "%-" + maxOwner + "s " : "%s"); // owner
+    fmt.append((maxGroup > 0) ? "%-" + maxGroup + "s " : "%s"); // group
+    fmt.append((maxLen > 0) ? "%-" + maxLen + "s " : "%s"); //lenght
+    fmt.append("%s "); //time
+    fmt.append("%-13s"); //memory or not
+    fmt.append("%s"); //path
+    return fmt.toString();
+  }
+
+  private int maxLength(int n, Object value) {
+    return Math.max(n, (value != null) ? String.valueOf(value).length() : 0);
+  }
+
+  private boolean inMemoryFile(ClientFileInfo file) {
+    if (!file.isFolder && (file.inMemoryPercentage == 100)) {
+      return true;
+    }
+    return false;
+  }
+
+  private void print(List<ClientFileInfo> items) throws IOException {
+    String lineFormat = adjustColumnWidths(items);
+    for (ClientFileInfo item : items) {
+      String line = String.format(lineFormat,
+          (item.isFolder ? "d" : "-"),
+          AclUtil.formatPermission((short)item.permission),
+          item.owner,
+          item.group,
+          String.valueOf((item.length)),
+          mDateFormat.format(new Date(item.lastModificationTimeMs)),
+          item.isFolder ? "" : (inMemoryFile(item) ? "InMemory" : "Not InMemory"),
+          item.path);
+      System.out.println(line);
+    }
   }
 
   /**
@@ -603,7 +654,7 @@ public class TFsShell implements Closeable {
   }
 
   private int chmodCore(String[] argv, boolean recursive) throws IOException {
-    if (argv.length != 2) {
+    if (argv.length != 3) {
       System.out.println("Usage: chmod <mode> <file path|folder path>");
       return -1;
     }
@@ -641,14 +692,14 @@ public class TFsShell implements Closeable {
   }
 
   private int chownCore(String[] argv, boolean recursive) throws IOException {
-    if (argv.length != 2) {
+    if (argv.length != 3) {
       System.out.println("Usage: chown <owner|owner:group> <file path|folder path>");
       return -1;
     }
     String owner = "";
     String group = null;
     if (argv[1].contains(":")) {
-      String[] user = argv[1].split(":");  
+      String[] user = argv[1].split(":");
       owner = user[0];
       group = user[1];
     } else {
@@ -750,10 +801,16 @@ public class TFsShell implements Closeable {
         exitCode = free(argv);
       } else if (cmd.equals("chmod")) {
         exitCode = chmod(argv);
+      } else if (cmd.equals("chmodr")) {
+        exitCode = chmodr(argv);
       } else if (cmd.equals("chown")) {
         exitCode = chown(argv);
+      } else if (cmd.equals("chownr")) {
+        exitCode = chownr(argv);
       } else if (cmd.equals("chgrp")) {
         exitCode = chgrp(argv);
+      } else if (cmd.equals("chgrpr")) {
+        exitCode = chgrpr(argv);
       } else {
         printUsage();
         return -1;

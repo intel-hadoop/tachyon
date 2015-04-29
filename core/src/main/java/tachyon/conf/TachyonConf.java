@@ -335,7 +335,39 @@ public class TachyonConf {
       return defaultValue;
     }
   }
-  
+
+  /**
+   * Get the value of the <code>name</code> property as a <code>Class</code>
+   * implementing the interface specified by <code>xface</code>.
+   *
+   * If no such property is specified, then <code>defaultValue</code> is
+   * returned.
+   *
+   * An exception is thrown if the returned class does not implement the named
+   * interface.
+   *
+   * @param name the class name.
+   * @param defaultValue default value.
+   * @param xface the interface implemented by the named class.
+   * @return property value as a <code>Class</code>,
+   *         or <code>defaultValue</code>.
+   */
+  public <T> Class<? extends T> getClass(String name,Class<? extends T> defaultValue,
+      Class<T> xface) {
+    try {
+      Class<?> theClass = getClass(name, defaultValue);
+      if (theClass != null && !xface.isAssignableFrom(theClass)) {
+        throw new RuntimeException(theClass + " not " + xface.getName());
+      } else if (theClass != null) {
+        return theClass.asSubclass(xface);
+      } else {
+        return null;
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public Map<String, String> toMap() {
     Map<String, String> copy = new HashMap<String, String>();
     for (Enumeration<?> names = mProperties.propertyNames(); names.hasMoreElements();) {

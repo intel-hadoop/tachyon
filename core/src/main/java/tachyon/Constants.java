@@ -188,4 +188,5 @@ public class Constants {
       tachyon.client.tcp.TCPRemoteBlockReader.class;
 
   public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
+  public static final String TACHYON_SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
 }

@@ -17,8 +17,6 @@ package tachyon.master;
 
 import java.util.NoSuchElementException;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.TachyonURI;
 
 /**
@@ -73,55 +71,6 @@ public class InodesInPath {
     return getInode(-1);
   }
 
-  /**
-   * @return an InodesInPath instance containing all the Inodes in the parent
-   *         path. We do a deep copy here.
-   */
-  public InodesInPath getParentINodesInPath() {
-    if (mInodes == null || mInodes.length == 0) {
-      throw new NoSuchElementException("inodes is null or empty");
-    }
-    return constructInodesInPath(mInodes.length - 1);
-  }
-
-  /**
-   * @return an InodesInPath instance containing all the Inodes in the ancestor path.
-   *
-   * Example:
-   * Given the path /c1/c2/c3 where only /c1 exists. The parent path is /c1/c2, but the
-   * ancestor path is /c1
-   * We do a deep copy here.
-   */
-  public InodesInPath getAncestorINodesInPath() {
-    return constructInodesInPath(getAncestorIndex());
-  }
-
-  public int getAncestorIndex() {
-    if (mInodes == null || mInodes.length == 0) {
-      throw new NoSuchElementException("inodes is null or empty");
-    }
-    int i = 0;
-    for (; i < mInodes.length - 1; i++) {
-      if (mInodes[i] == null) {
-        break;
-      }
-    }
-    return i;
-  }
-
-  /**
-   * @param length number of INodes in the returned INodesInPath
-   *               instance
-   * @return the INodesInPath instance.We do a deep copy here.
-   */
-  private InodesInPath constructInodesInPath(int length) {
-    Preconditions.checkArgument(length >= 0 && length < mInodes.length);
-    final Inode[] anodes = new Inode[length];
-    final String[] apath = new String[length];
-    System.arraycopy(this.mInodes, 0, anodes, 0, length);
-    System.arraycopy(this.mPathByNameArr, 0, apath, 0, length);
-    return new InodesInPath(anodes, apath);
-  }
   /**
    * Given a array of pathNames returns a full path String
    */

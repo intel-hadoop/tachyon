@@ -58,6 +58,9 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
+import tachyon.security.SecurityUtil;
+import tachyon.security.UserGroupInformation;
+import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -247,13 +250,13 @@ public final class MasterClient implements Closeable {
     TTransport tTransport = null;
     try {
       if (!"noSasl".equals(mTachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION, "noSasl"))) {
+        SecurityUtil.login(mTachyonConf);
         // handle specific secure connection
         // TODO: 1. Kerboros 2. delegation token
 
         // 3. Plain Sasl connection with user/password
         // TODO: define the key as a Constant
-        String username = mTachyonConf.get("user", "anonymous");
-        String password = mTachyonConf.get("password", "anonymous");
+        String username = UserGroupInformation.getTachyonLoginUser().getName();
         if (false) {
           // TODO: ssl connection
         } else {
@@ -263,7 +266,7 @@ public final class MasterClient implements Closeable {
         }
         // Overlay the SASL transport on top of the base socket transport (SSL or non-SSL)
         tTransport = new TSaslClientTransport("PLAIN", null, null, null, new HashMap<String,
-                    String>(), new PlainCallbackHandler(username, password), tTransport);
+                    String>(), new PlainCallbackHandler(username, "anonymous"), tTransport);
       } else {
         // TODO: Raw socket connection (non-sasl)
         // the original code
@@ -332,6 +335,8 @@ public final class MasterClient implements Closeable {
         return mClient.getFileStatus(fileId, path);
       } catch (InvalidPathException e) {
         throw new IOException(e);
+      } catch (AccessControlException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -393,6 +398,8 @@ public final class MasterClient implements Closeable {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -470,7 +477,6 @@ public final class MasterClient implements Closeable {
 
     while (!mIsShutdown) {
       connect();
-
       try {
         return mClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
       } catch (FileAlreadyExistException e) {
@@ -482,6 +488,8 @@ public final class MasterClient implements Closeable {
       } catch (SuspectedFileSizeException e) {
         throw new IOException(e);
       } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -542,6 +550,8 @@ public final class MasterClient implements Closeable {
       try {
         return mClient.user_delete(fileId, path, recursive);
       } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -698,6 +708,8 @@ public final class MasterClient implements Closeable {
         throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
+      } catch (AccessControlException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -720,6 +732,8 @@ public final class MasterClient implements Closeable {
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -915,6 +929,12 @@ public final class MasterClient implements Closeable {
       connect();
       try {
         return mClient.user_setOwner(fileId, path, username, groupname, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
+        throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -931,6 +951,12 @@ public final class MasterClient implements Closeable {
       connect();
       try {
         return mClient.user_setPermission(fileId, path, permission, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
+        throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TException e) {

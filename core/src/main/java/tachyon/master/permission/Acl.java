@@ -246,7 +246,7 @@ public class Acl {
       mGroupEntry = new AclEntry.Builder().setType(AclType.GROUP)
                    .setName(group).setPermission(AclUtil.toGroupPermission(permission))
                    .build();
-      mGroupEntry = new AclEntry.Builder().setType(AclType.OTHER)
+      mOtherEntry = new AclEntry.Builder().setType(AclType.OTHER)
                    .setPermission(AclUtil.toOtherPermission(permission))
                    .build();
       return new Acl(mUserEntry, mGroupEntry, mOtherEntry);
