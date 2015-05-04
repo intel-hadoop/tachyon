@@ -704,12 +704,12 @@ public class MasterInfo extends ImageWriter {
         return false;
       }
 
-      checkPathAccess(getPath(inode), AclPermission.WRITE);
-
       if (inode.getId() == mRoot.getId()) {
         // The root cannot be deleted.
         return false;
       }
+
+      checkPathAccess(getPath(inode), AclPermission.WRITE);
 
       List<Inode> delInodes = new ArrayList<Inode>();
       delInodes.add(inode);
@@ -866,8 +866,13 @@ public class MasterInfo extends ImageWriter {
       if (srcPath.isRoot() || dstPath.isRoot()) {
         return false;
       }
-
+      /*
+       * To check 'w'permission or the existing src
+       */
       checkPathAccess(srcPath, AclPermission.WRITE);
+      /*
+       * To check 'w' permission of parent for src and ancesstor dst directory
+       */
       checkParentAccess(srcPath, AclPermission.WRITE);
       checkAncestorAccess(dstPath, AclPermission.WRITE);
 
@@ -2263,15 +2268,23 @@ public class MasterInfo extends ImageWriter {
       if (inode == null) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      checkOwner(getPath(inode));
-      Acl newAcl = new Acl(inode.getAcl());
-      if (username != null) {
-        newAcl.setUserOwner(username);
+      if (recursive) {
+        if (!inode.isDirectory()) {
+          throw new AccessControlException("Failed to recursive setOwner on a file: "
+                                           + getPath(inode));
+        }
+        Queue<Inode> queue = new LinkedList<Inode>();
+        queue.addAll(((InodeFolder) inode).getChildren());
+
+        while (!queue.isEmpty()) {
+          Inode qinode = queue.poll();
+          if (qinode.isDirectory()) {
+            queue.addAll(((InodeFolder) qinode).getChildren());
+          }
+          _setOwner(qinode, username, groupname);
+        }
       }
-      if (groupname != null) {
-        newAcl.setGroupOwner(groupname);
-      }
-      inode.setAcl(newAcl);
+      _setOwner(inode, username, groupname);
     }
     mJournal.getEditLog().chown(fileId, username, groupname, recursive, opTimeMs);
     mJournal.getEditLog().flush();
@@ -2293,6 +2306,19 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
+  public void _setOwner(Inode inode, String username, String groupname)
+      throws AccessControlException {
+    checkOwner(getPath(inode));
+    Acl newAcl = new Acl(inode.getAcl());
+    if (username != null) {
+      newAcl.setUserOwner(username);
+    }
+    if (groupname != null) {
+      newAcl.setGroupOwner(groupname);
+    }
+    inode.setAcl(newAcl);
+  }
+
   /**
    * Set permission based on fileId
    * @param fileId The id of the file / folder.
@@ -2309,10 +2335,23 @@ public class MasterInfo extends ImageWriter {
       if (inode == null) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      checkOwner(getPath(inode));
-      Acl newAcl = new Acl(inode.getAcl());
-      newAcl.setPermission(permission);
-      inode.setAcl(newAcl);
+      if (recursive) {
+        if (!inode.isDirectory()) {
+          throw new AccessControlException("Failed to recursive setPermission on a file: "
+                                           + getPath(inode));
+        }
+        Queue<Inode> queue = new LinkedList<Inode>();
+        queue.addAll(((InodeFolder) inode).getChildren());
+
+        while (!queue.isEmpty()) {
+          Inode qinode = queue.poll();
+          if (qinode.isDirectory()) {
+            queue.addAll(((InodeFolder) qinode).getChildren());
+          }
+          _setPermission(qinode, permission);
+        }
+      }
+      _setPermission(inode, permission);
     }
     mJournal.getEditLog().chmod(fileId, permission, recursive, opTimeMs);
     mJournal.getEditLog().flush();
@@ -2337,6 +2376,13 @@ public class MasterInfo extends ImageWriter {
       }
       return setPermission(inode.getId(), permission, recursive);
     }
+  }
+
+  public void _setPermission(Inode inode, short permission) throws AccessControlException {
+    checkOwner(getPath(inode));
+    Acl newAcl = new Acl(inode.getAcl());
+    newAcl.setPermission(permission);
+    inode.setAcl(newAcl);
   }
   /**
    * Logs a lost file and sets it to be recovered.

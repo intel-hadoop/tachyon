@@ -416,7 +416,7 @@ public class TFsShell implements Closeable {
     fmt.append((maxGroup > 0) ? "%-" + maxGroup + "s " : "%s"); // group
     fmt.append((maxLen > 0) ? "%-" + maxLen + "s " : "%s"); //lenght
     fmt.append("%s "); //time
-    fmt.append("%-13s"); //memory or not
+    fmt.append("%-12s "); //memory or not
     fmt.append("%s"); //path
     return fmt.toString();
   }
@@ -707,7 +707,7 @@ public class TFsShell implements Closeable {
     }
     TachyonURI path = new TachyonURI(argv[2]);
     TachyonFS tachyonClient = createFS(path);
-    tachyonClient.setOwner(path, owner, group, false);
+    tachyonClient.setOwner(path, owner, group, recursive);
     return 0;
   }
 
@@ -734,7 +734,7 @@ public class TFsShell implements Closeable {
   }
 
   private int chgrpCore(String[] argv, boolean recursive) throws IOException {
-    if (argv.length != 2) {
+    if (argv.length != 3) {
       System.out.println("Usage: chgrp <group> <file path|folder path>");
       return -1;
     }
