@@ -18,6 +18,8 @@ package tachyon.security;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,9 +31,10 @@ import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
-import org.apache.hadoop.security.Groups;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -39,9 +42,7 @@ import tachyon.conf.TachyonConf;
 //TODO: user to group mapping
 public class UserGroupInformation {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private static AuthenticationMethod sAuthenticationMethod;
-
   private static final String OS_LOGIN_MODULE_NAME;
   private static final Class<? extends Principal> OS_PRINCIPAL_CLASS;
   private static final boolean WINDOWS =
@@ -57,9 +58,16 @@ public class UserGroupInformation {
     OS_PRINCIPAL_CLASS = getOsPrincipalClass();
   }
 
+  /**
+   * Information about the logged in user.
+   */
+  private static UserGroupInformation sLoginUser = null;
+  private static Groups sGroups;
+  /** The configuration to use */
+  private static TachyonConf sConf;
   //TODO: represent the user and group by a class
-  private static User sUser;
-  private Set<String> mGroups;
+  private final User mUser;
+  private final Subject mSubject;
 
   /* Return the OS login module class name */
   private static String getOSLoginModuleName() {
@@ -192,11 +200,28 @@ public class UserGroupInformation {
     }
   }
 
-  public static void initialize(TachyonConf conf) {
-    sAuthenticationMethod = SecurityUtil.getAuthenticationMethod(conf);
+  public static void ensureInitialized() {
+    if (sConf == null) {
+      synchronized (UserGroupInformation.class) {
+        if (sConf == null) {
+          initialized(new TachyonConf());
+        }
+      }
+    }
   }
 
-  public static void loginUserFromOS() throws IOException {
+  public static void setConfiguration(TachyonConf conf) {
+    initialized(conf);
+  }
+
+  public static void initialized(TachyonConf conf) {
+    sAuthenticationMethod = SecurityUtil.getAuthenticationMethod(conf);
+    sGroups = Groups.getUserToGroupsMappingService(conf);
+    UserGroupInformation.sConf = conf;
+  }
+
+  public static synchronized void loginUserFromSubject() throws IOException {
+    ensureInitialized();
     try {
       Subject subject = new Subject();
 
@@ -204,18 +229,34 @@ public class UserGroupInformation {
           new TachyonJaasConfiguration());
       loginContext.login();
 
-      sUser = subject.getPrincipals(User.class).iterator().next();
+      sLoginUser = new UserGroupInformation(subject);
     } catch (LoginException e) {
       throw new IOException("fail to login", e);
     }
   }
 
-  public static User getTachyonLoginUser() throws IOException {
-    if (sUser == null) {
-      LOG.warn("login user is not found");
-
+  /**
+   * Create a user from a login name. It is intended to be used for remote
+   * users in RPC
+   * @param user the full user principal name, must not be empty or null
+   * @return the UserGroupInformation for the remote user.
+   */
+  public static UserGroupInformation createRemoteUser(String user) {
+    if (user == null || user.isEmpty()) {
+      throw new IllegalArgumentException("Null user");
     }
-    return sUser;
+    Subject subject = new Subject();
+    subject.getPrincipals().add(new User(user));
+    UserGroupInformation result = new UserGroupInformation(subject);
+    return result;
+  }
+
+  public static synchronized UserGroupInformation getTachyonLoginUser()
+      throws IOException {
+    if (sLoginUser == null) {
+      loginUserFromSubject();
+    }
+    return sLoginUser;
   }
 
   private static LoginContext newLoginContext(String appName, Subject subject,
@@ -228,5 +269,45 @@ public class UserGroupInformation {
     } finally {
       t.setContextClassLoader(oldCCL);
     }
+  }
+
+  private UserGroupInformation(Subject subject) {
+    this.mSubject = subject;
+    this.mUser = subject.getPrincipals(User.class).iterator().next();
+  }
+
+  /**
+   * Get the user's login name.
+   * @return the user's name up to the first '/' or '@'.
+   */
+  public String getShortUserName() {
+    for (User p: mSubject.getPrincipals(User.class)) {
+      return p.getName();
+    }
+    return null;
+  }
+
+  /**
+   * Get the group names for this user.
+   * @return the list of users with the primary group first. If the command
+   *    fails, it returns an empty list.
+   */
+  public synchronized List<String> getGroupNames() {
+    ensureInitialized();
+    try {
+      Set<String> result = new LinkedHashSet<String>(sGroups.getGroups(getShortUserName()));
+      return Lists.newArrayList(result);
+    } catch (IOException ie) {
+      LOG.warn("No groups available for user " + getShortUserName());
+      return Lists.newArrayList();
+    }
+  }
+
+  public String getPrimaryGroupName() throws IOException {
+    List<String> groups = getGroupNames();
+    if (groups.isEmpty()) {
+      throw new IOException("There is no primary group for UGI " + this);
+    }
+    return groups.get(0);
   }
 }

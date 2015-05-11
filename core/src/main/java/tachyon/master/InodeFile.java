@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclUtil;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -58,13 +59,13 @@ public class InodeFile extends Inode {
     final String owner = ele.getString("owner");
     final String group = ele.getString("group");
     final short permission = ele.getShort("permission");
-    InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
+    InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs,
+        new Acl.Builder().build(owner, group, permission));
     try {
       inode.setLength(length);
     } catch (Exception e) {
       throw new IOException(e);
     }
-    inode.setAcl(new Acl.Builder().build(owner, group, permission));
     inode.setComplete(isComplete);
     inode.setPinned(isPinned);
     inode.setCache(isCache);
@@ -91,11 +92,15 @@ public class InodeFile extends Inode {
    * @param id The id of the file
    * @param parentId The id of the parent of the file
    * @param blockSizeByte The block size of the file, in bytes
-   * @param acl the acl of the inode
    * @param creationTimeMs The creation time of the file, in milliseconds
    */
   public InodeFile(String name, int id, int parentId, long blockSizeByte,long creationTimeMs) {
-    super(name, id, parentId, false, creationTimeMs);
+    this(name, id, parentId, blockSizeByte, creationTimeMs, AclUtil.getDefault(false));
+  }
+
+  public InodeFile(String name, int id, int parentId, long blockSizeByte,long creationTimeMs,
+      Acl acl) {
+    super(name, id, parentId, false, creationTimeMs, acl);
     mBlockSizeByte = blockSizeByte;
     mDependencyId = -1;
   }

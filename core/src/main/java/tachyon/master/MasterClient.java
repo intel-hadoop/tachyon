@@ -256,7 +256,7 @@ public final class MasterClient implements Closeable {
 
         // 3. Plain Sasl connection with user/password
         // TODO: define the key as a Constant
-        String username = UserGroupInformation.getTachyonLoginUser().getName();
+        String username = UserGroupInformation.getTachyonLoginUser().getShortUserName();
         if (false) {
           // TODO: ssl connection
         } else {

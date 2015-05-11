@@ -59,7 +59,7 @@ public class Constants {
   // Default permission of directory
   public static final short DEFAULT_DIR_PERMISSION = 0777;
   // Default permission of file
-  public static final short DEFAULT_FILE_PERMISSION = 0666;
+  public static final short DEFAULT_FILE_PERMISSION = 0644;
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
@@ -188,5 +188,13 @@ public class Constants {
       tachyon.client.tcp.TCPRemoteBlockReader.class;
 
   public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
+
   public static final String TACHYON_SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
+  public static final String TACHYON_SECURITY_GROUPS_CACHE_SECS =
+      "tachyon.security.groups.cache.secs";
+  public static final long TACHYON_SECURITY_GROUPS_CACHE_SECS_DEFAULT = 300;
+  /** User->groups static mapping to override the groups lookup */
+  public static final String TACHYON_USER_GROUP_STATIC_OVERRIDES =
+      "tachyon.user.group.static.mapping.overrides";
+  public static final String TACHYON_USER_GROUP_STATIC_OVERRIDES_DEFAULT = "dr.who=;";
 }

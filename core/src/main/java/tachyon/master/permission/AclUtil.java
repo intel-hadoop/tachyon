@@ -15,9 +15,12 @@
 
 package tachyon.master.permission;
 
+import java.io.IOException;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.permission.AclEntry.AclPermission;
+import tachyon.security.UserGroupInformation;
 
 public class AclUtil {
   private static final AclPermission[] ACL_PERMISSIONS = AclPermission.values();
@@ -87,5 +90,28 @@ public class AclUtil {
           Constants.DEFAULT_FS_PERMISSIONS_UMASK);
     }
     return (short)umask;
+  }
+
+  /**
+   * Get the default Acl information for Inode
+   * @param isFolder
+   * @return Acl
+   */
+  public static Acl getDefault(UserGroupInformation ugi, TachyonConf conf, boolean isFolder) {
+    Acl acl = new Acl.Builder().build(ugi.getShortUserName(),
+        conf.get(Constants.FS_PERMISSIONS_SUPERGROUP, Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT),
+        isFolder ? Constants.DEFAULT_DIR_PERMISSION : Constants.DEFAULT_FILE_PERMISSION);
+    acl.umask(conf);
+    return acl;
+  }
+
+  public static Acl getDefault(boolean isFolder) {
+    UserGroupInformation ugi = null;
+    try {
+      ugi = UserGroupInformation.getTachyonLoginUser();
+    } catch (IOException ioe) {
+      throw new RuntimeException("can't get the ugi info", ioe);
+    }
+    return getDefault(ugi, new TachyonConf(), isFolder);
   }
 }

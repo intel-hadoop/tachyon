@@ -16,19 +16,14 @@
 package tachyon.hadoop;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.Groups;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.security.GroupMappingServiceProvider;
 
 public class HadoopGroupMappingService implements GroupMappingServiceProvider {
-  private static final Logger LOGGER = LoggerFactory.getLogger(HadoopGroupMappingService.class);
   private Groups mGroups;
 
   public HadoopGroupMappingService() {
@@ -40,12 +35,17 @@ public class HadoopGroupMappingService implements GroupMappingServiceProvider {
   }
 
   @Override
-  public Set<String> getGroups(String user) throws IOException {
-    try {
-      return new HashSet<String>(mGroups.getGroups(user));
-    } catch (IOException e) {
-      LOGGER.warn("Unable to obtain groups for " + user, e);
-    }
-    return Collections.emptySet();
+  public List<String> getGroups(String user) throws IOException {
+    return mGroups.getGroups(user);
+  }
+
+  @Override
+  public void cacheGroupsRefresh() throws IOException {
+    mGroups.refresh();
+  }
+
+  @Override
+  public void cacheGroupsAdd(List<String> groups) throws IOException {
+    mGroups.cacheGroupsAdd(groups);
   }
 }

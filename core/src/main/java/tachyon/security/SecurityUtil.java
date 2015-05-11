@@ -34,7 +34,7 @@ public class SecurityUtil {
     }
 
     // Simple
-    UserGroupInformation.loginUserFromOS();
+    //UserGroupInformation.loginUserFromOS();
 
     // TODO: kerbores
   }

@@ -14,7 +14,6 @@
  */
 package tachyon.master.permission;
 
-import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

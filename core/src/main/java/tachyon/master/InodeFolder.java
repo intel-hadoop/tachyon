@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
 import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclUtil;
 import tachyon.thrift.ClientFileInfo;
 
 /**
@@ -83,8 +84,8 @@ public class InodeFolder extends Inode {
           throw new IOException("Invalid element type " + ele);
       }
     }
-    InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
-    folder.setAcl(new Acl.Builder().build(owner, group, permission));
+    InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs,
+        new Acl.Builder().build(owner, group, permission));
     folder.setPinned(isPinned);
     folder.addChildren(children);
     folder.setLastModificationTimeMs(lastModificationTimeMs);
@@ -100,11 +101,14 @@ public class InodeFolder extends Inode {
    * @param name The name of the folder
    * @param id The id of the folder
    * @param parentId The id of the parent of the folder
-   * @param acl the acl of the inode
    * @param creationTimeMs The creation time of the folder, in milliseconds
    */
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
-    super(name, id, parentId, true, creationTimeMs);
+    this(name, id, parentId, creationTimeMs, AclUtil.getDefault(true));
+  }
+
+  public InodeFolder(String name, int id, int parentId, long creationTimeMs, Acl acl) {
+    super(name, id, parentId, true, creationTimeMs, acl);
   }
 
   /**

@@ -46,17 +46,18 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    * @param id the id of the inode, which is globaly unique.
    * @param parentId the parent of the inode. -1 if there is no parent.
    * @param isFolder if the inode presents a folder
-   * @param acl the acl of the inode
    * @param creationTimeMs the creation time of the inode.
+   * @param acl the acl of the inode
    */
   protected Inode(String name, int id, int parentId, boolean isFolder,
-      long creationTimeMs) {
+      long creationTimeMs, Acl acl) {
     mCreationTimeMs = creationTimeMs;
     mIsFolder = isFolder;
     mId = id;
     mName = name;
     mParentId = parentId;
     mLastModificationTimeMs = creationTimeMs;
+    mAcl = acl;
   }
 
   @Override

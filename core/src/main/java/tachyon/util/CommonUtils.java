@@ -27,9 +27,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.apache.commons.io.FilenameUtils;
@@ -37,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -113,9 +112,9 @@ public final class CommonUtils {
    *         group is returned first.
    * @throws IOException if encounter any error when running the command
    */
-  public static Set<String> getUnixGroups(final String user) throws IOException {
+  public static List<String> getUnixGroups(final String user) throws IOException {
     String result = "";
-    Set<String> groups = new LinkedHashSet<String>();
+    List<String> groups = Lists.newArrayList();
     try {
       result = Shell.execCommand(Shell.getGroupsForUserCommand(user));
     } catch (ExitCodeException e) {

@@ -398,8 +398,8 @@ public class TFsShellTest {
 
   @Test
   public void mkdirExistingTest() throws IOException {
-    Assert.assertEquals(0, mFsShell.mkdir(new String[] {"mkdir", "/testFile1"}));
-    Assert.assertEquals(0, mFsShell.mkdir(new String[] {"mkdir", "/testFile1"}));
+    mFsShell.mkdir(new String[] {"mkdir", "/testFile1"});
+    mFsShell.mkdir(new String[] {"mkdir", "/testFile1"});
   }
 
   @Test(expected = IOException.class)

@@ -139,7 +139,7 @@ public class MasterService {
 
     public boolean user_rename(int fileId, String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, AccessControlException, org.apache.thrift.TException;
 
-    public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException, AccessControlException, org.apache.thrift.TException;
 
     public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, TachyonException, AccessControlException, org.apache.thrift.TException;
 
@@ -944,7 +944,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_rename failed: unknown result");
     }
 
-    public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException, org.apache.thrift.TException
+    public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException, AccessControlException, org.apache.thrift.TException
     {
       send_user_setPinned(fileId, pinned);
       recv_user_setPinned();
@@ -958,12 +958,15 @@ public class MasterService {
       sendBase("user_setPinned", args);
     }
 
-    public void recv_user_setPinned() throws FileDoesNotExistException, org.apache.thrift.TException
+    public void recv_user_setPinned() throws FileDoesNotExistException, AccessControlException, org.apache.thrift.TException
     {
       user_setPinned_result result = new user_setPinned_result();
       receiveBase(result, "user_setPinned");
-      if (result.e != null) {
-        throw result.e;
+      if (result.eF != null) {
+        throw result.eF;
+      }
+      if (result.eA != null) {
+        throw result.eA;
       }
       return;
     }
@@ -2133,7 +2136,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
+      public void getResult() throws FileDoesNotExistException, AccessControlException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -3153,8 +3156,10 @@ public class MasterService {
         user_setPinned_result result = new user_setPinned_result();
         try {
           iface.user_setPinned(args.fileId, args.pinned);
-        } catch (FileDoesNotExistException e) {
-          result.e = e;
+        } catch (FileDoesNotExistException eF) {
+          result.eF = eF;
+        } catch (AccessControlException eA) {
+          result.eA = eA;
         }
         return result;
       }
@@ -4900,8 +4905,13 @@ public class MasterService {
             org.apache.thrift.TBase msg;
             user_setPinned_result result = new user_setPinned_result();
             if (e instanceof FileDoesNotExistException) {
-                        result.e = (FileDoesNotExistException) e;
-                        result.setEIsSet(true);
+                        result.eF = (FileDoesNotExistException) e;
+                        result.setEFIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof AccessControlException) {
+                        result.eA = (AccessControlException) e;
+                        result.setEAIsSet(true);
                         msg = result;
             }
              else 
@@ -29475,7 +29485,8 @@ public class MasterService {
   public static class user_setPinned_result implements org.apache.thrift.TBase<user_setPinned_result, user_setPinned_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_setPinned_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_setPinned_result");
 
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_A_FIELD_DESC = new org.apache.thrift.protocol.TField("eA", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -29483,11 +29494,13 @@ public class MasterService {
       schemes.put(TupleScheme.class, new user_setPinned_resultTupleSchemeFactory());
     }
 
-    public FileDoesNotExistException e; // required
+    public FileDoesNotExistException eF; // required
+    public AccessControlException eA; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e");
+      E_F((short)1, "eF"),
+      E_A((short)2, "eA");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -29502,8 +29515,10 @@ public class MasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // E
-            return E;
+          case 1: // E_F
+            return E_F;
+          case 2: // E_A
+            return E_A;
           default:
             return null;
         }
@@ -29547,7 +29562,9 @@ public class MasterService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_A, new org.apache.thrift.meta_data.FieldMetaData("eA", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_setPinned_result.class, metaDataMap);
@@ -29557,18 +29574,23 @@ public class MasterService {
     }
 
     public user_setPinned_result(
-      FileDoesNotExistException e)
+      FileDoesNotExistException eF,
+      AccessControlException eA)
     {
       this();
-      this.e = e;
+      this.eF = eF;
+      this.eA = eA;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public user_setPinned_result(user_setPinned_result other) {
-      if (other.isSetE()) {
-        this.e = new FileDoesNotExistException(other.e);
+      if (other.isSetEF()) {
+        this.eF = new FileDoesNotExistException(other.eF);
+      }
+      if (other.isSetEA()) {
+        this.eA = new AccessControlException(other.eA);
       }
     }
 
@@ -29578,40 +29600,73 @@ public class MasterService {
 
     @Override
     public void clear() {
-      this.e = null;
+      this.eF = null;
+      this.eA = null;
     }
 
-    public FileDoesNotExistException getE() {
-      return this.e;
+    public FileDoesNotExistException getEF() {
+      return this.eF;
     }
 
-    public user_setPinned_result setE(FileDoesNotExistException e) {
-      this.e = e;
+    public user_setPinned_result setEF(FileDoesNotExistException eF) {
+      this.eF = eF;
       return this;
     }
 
-    public void unsetE() {
-      this.e = null;
+    public void unsetEF() {
+      this.eF = null;
     }
 
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
+    /** Returns true if field eF is set (has been assigned a value) and false otherwise */
+    public boolean isSetEF() {
+      return this.eF != null;
     }
 
-    public void setEIsSet(boolean value) {
+    public void setEFIsSet(boolean value) {
       if (!value) {
-        this.e = null;
+        this.eF = null;
+      }
+    }
+
+    public AccessControlException getEA() {
+      return this.eA;
+    }
+
+    public user_setPinned_result setEA(AccessControlException eA) {
+      this.eA = eA;
+      return this;
+    }
+
+    public void unsetEA() {
+      this.eA = null;
+    }
+
+    /** Returns true if field eA is set (has been assigned a value) and false otherwise */
+    public boolean isSetEA() {
+      return this.eA != null;
+    }
+
+    public void setEAIsSet(boolean value) {
+      if (!value) {
+        this.eA = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case E:
+      case E_F:
         if (value == null) {
-          unsetE();
+          unsetEF();
         } else {
-          setE((FileDoesNotExistException)value);
+          setEF((FileDoesNotExistException)value);
+        }
+        break;
+
+      case E_A:
+        if (value == null) {
+          unsetEA();
+        } else {
+          setEA((AccessControlException)value);
         }
         break;
 
@@ -29620,8 +29675,11 @@ public class MasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case E:
-        return getE();
+      case E_F:
+        return getEF();
+
+      case E_A:
+        return getEA();
 
       }
       throw new IllegalStateException();
@@ -29634,8 +29692,10 @@ public class MasterService {
       }
 
       switch (field) {
-      case E:
-        return isSetE();
+      case E_F:
+        return isSetEF();
+      case E_A:
+        return isSetEA();
       }
       throw new IllegalStateException();
     }
@@ -29653,12 +29713,21 @@ public class MasterService {
       if (that == null)
         return false;
 
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
+      boolean this_present_eF = true && this.isSetEF();
+      boolean that_present_eF = true && that.isSetEF();
+      if (this_present_eF || that_present_eF) {
+        if (!(this_present_eF && that_present_eF))
           return false;
-        if (!this.e.equals(that.e))
+        if (!this.eF.equals(that.eF))
+          return false;
+      }
+
+      boolean this_present_eA = true && this.isSetEA();
+      boolean that_present_eA = true && that.isSetEA();
+      if (this_present_eA || that_present_eA) {
+        if (!(this_present_eA && that_present_eA))
+          return false;
+        if (!this.eA.equals(that.eA))
           return false;
       }
 
@@ -29678,12 +29747,22 @@ public class MasterService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
+      lastComparison = Boolean.valueOf(isSetEF()).compareTo(other.isSetEF());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+      if (isSetEF()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eF, other.eF);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEA()).compareTo(other.isSetEA());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEA()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eA, other.eA);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -29708,11 +29787,19 @@ public class MasterService {
       StringBuilder sb = new StringBuilder("user_setPinned_result(");
       boolean first = true;
 
-      sb.append("e:");
-      if (this.e == null) {
+      sb.append("eF:");
+      if (this.eF == null) {
         sb.append("null");
       } else {
-        sb.append(this.e);
+        sb.append(this.eF);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eA:");
+      if (this.eA == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eA);
       }
       first = false;
       sb.append(")");
@@ -29758,11 +29845,20 @@ public class MasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // E
+            case 1: // E_F
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new FileDoesNotExistException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
+                struct.eF = new FileDoesNotExistException();
+                struct.eF.read(iprot);
+                struct.setEFIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // E_A
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eA = new AccessControlException();
+                struct.eA.read(iprot);
+                struct.setEAIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -29782,9 +29878,14 @@ public class MasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
+        if (struct.eF != null) {
+          oprot.writeFieldBegin(E_F_FIELD_DESC);
+          struct.eF.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eA != null) {
+          oprot.writeFieldBegin(E_A_FIELD_DESC);
+          struct.eA.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -29805,23 +29906,34 @@ public class MasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, user_setPinned_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetE()) {
+        if (struct.isSetEF()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
+        if (struct.isSetEA()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetEF()) {
+          struct.eF.write(oprot);
+        }
+        if (struct.isSetEA()) {
+          struct.eA.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_setPinned_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.e = new FileDoesNotExistException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
+          struct.eF = new FileDoesNotExistException();
+          struct.eF.read(iprot);
+          struct.setEFIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.eA = new AccessControlException();
+          struct.eA.read(iprot);
+          struct.setEAIsSet(true);
         }
       }
     }

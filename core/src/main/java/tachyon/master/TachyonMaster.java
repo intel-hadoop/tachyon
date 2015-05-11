@@ -132,7 +132,6 @@ public class TachyonMaster {
       Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
           "Tachyon was not formatted! The journal folder is " + journalFolder);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
-      SecurityUtil.login(mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
       if (mZookeeperMode) {

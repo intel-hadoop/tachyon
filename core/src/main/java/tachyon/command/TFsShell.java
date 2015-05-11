@@ -369,14 +369,6 @@ public class TFsShell implements Closeable {
     List<ClientFileInfo> files = Lists.newArrayList();
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    /*List<ClientFileInfo> files = tachyonClient.listStatus(path);
-    Collections.sort(files);
-    for (ClientFileInfo file : files) {
-      print(file);
-      if (file.isFolder) {
-        lsr(new String[] {"lsr", file.getPath()});
-      }
-    }*/
     lsrCore(tachyonClient, path.getPath(), files);
     Collections.sort(files);
     print(files);

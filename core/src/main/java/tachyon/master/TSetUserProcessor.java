@@ -20,6 +20,7 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSaslServerTransport;
 import org.apache.thrift.transport.TTransport;
 
+import tachyon.security.UserGroupInformation;
 import tachyon.thrift.MasterService;
 
 public class TSetUserProcessor<T extends MasterService.Iface> extends MasterService
@@ -34,27 +35,23 @@ public class TSetUserProcessor<T extends MasterService.Iface> extends MasterServ
     try {
       return super.process(in, out);
     } finally {
-      THREAD_LOCAL_USER_NAME.remove();
+      UGI_TL.remove();
     }
   }
 
   // TODO: maybe create a class, such as UserGroupInformation, to model user's info.
-  private static final ThreadLocal<String> THREAD_LOCAL_USER_NAME = new ThreadLocal<String>() {
-    @Override
-    protected synchronized String initialValue() {
-      return null;
-    }
-  };
+  private static final ThreadLocal<UserGroupInformation> UGI_TL =
+      new ThreadLocal<UserGroupInformation>();
 
-  public static String getUserName() {
-    return THREAD_LOCAL_USER_NAME.get();
+  public static UserGroupInformation getRemoteUser() {
+    return UGI_TL.get();
   }
 
   private void setUserName(final TProtocol in) {
     TTransport transport = in.getTransport();
     if (transport instanceof TSaslServerTransport) {
       String userName = ((TSaslServerTransport) transport).getSaslServer().getAuthorizationID();
-      THREAD_LOCAL_USER_NAME.set(userName);
+      UGI_TL.set(UserGroupInformation.createRemoteUser(userName));
     }
   }
 }

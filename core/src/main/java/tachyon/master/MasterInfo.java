@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,7 @@ import tachyon.UnderFileSystem.SpaceType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.permission.Acl;
 import tachyon.master.permission.AclEntry.AclPermission;
+import tachyon.master.permission.AclUtil;
 import tachyon.master.permission.FsPermissionChecker;
 import tachyon.security.AuthenticationProvider;
 import tachyon.security.GroupMappingServiceProvider;
@@ -301,9 +303,8 @@ public class MasterInfo extends ImageWriter {
 
   private final TachyonConf mTachyonConf;
   private final String mUFSDataFolder;
-  private final String mFsOwner;
+  private final UserGroupInformation mFsOwner;
   private final String mSupergroup;
-  private final GroupMappingServiceProvider mGroupMappingService;
 
   public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService executorService,
       TachyonConf tachyonConf) throws IOException {
@@ -313,15 +314,12 @@ public class MasterInfo extends ImageWriter {
 
     mRawTables = new RawTables(mTachyonConf);
 
-    mFsOwner = UserGroupInformation.getTachyonLoginUser().getName();
+    mFsOwner = UserGroupInformation.getTachyonLoginUser();
     mSupergroup = tachyonConf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
         Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT);
-    mGroupMappingService = ReflectionUtils.newInstance(tachyonConf.getClass(
-        Constants.TACHYON_SECURITY_GROUP_MAPPING,ShellBasedUnixGroupsMapping.class,
-        GroupMappingServiceProvider.class), tachyonConf);
 
-    mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1,System.currentTimeMillis());
-    mRoot.setAcl(new Acl.Builder().build(mFsOwner, mSupergroup, (short) 0755));
+    mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1,System.currentTimeMillis(),
+        AclUtil.getDefault(mFsOwner, mTachyonConf, true));
     mFileIdToInodes.put(mRoot.getId(), mRoot);
 
     mMasterAddress = address;
@@ -338,59 +336,25 @@ public class MasterInfo extends ImageWriter {
     mJournal.loadImage(this);
   }
 
-  private String getRemoteUser() {
-    String userName = null;
-    // TODO: 1. kerbores mode, we get remote user. 2. HTTP mode 3. ...
-
-    // Plain Sasl
-    userName = TSetUserProcessor.getUserName();
-
-    //TODO: proxy the user if needed
-
-    return userName;
-  }
-
-  /**
-   * Get the primary group from a specific user to create file or folder
-   * Currently the simple way to determine the primary group is get the
-   * first from the given groups
-   * @param user
-   * @return
-   */
-  private String getPrimaryGroup(String user) {
-    try {
-      Set<String> groups = mGroupMappingService.getGroups(user);
-      if (groups.isEmpty()) {
-        return "";
-      }
-      return groups.iterator().next();
-    } catch (IOException e) {
-      LOG.error("get primary group error:" + e.getMessage(), e);
-      return "";
-    }
+  private UserGroupInformation getRemoteUser() {
+    return TSetUserProcessor.getRemoteUser();
   }
 
   private FsPermissionChecker getPermissionChecker() throws AccessControlException {
-    try {
-      String remoteUser = getRemoteUser();
-      return new FsPermissionChecker(mFsOwner, mSupergroup, getRemoteAuthenticator(remoteUser,
-          mGroupMappingService.getGroups(remoteUser)));
-    } catch (IOException e) {
-      throw new AccessControlException("get getPermissionChecker error: " + e.getMessage());
-    }
+    return new FsPermissionChecker(mFsOwner.getShortUserName(), mSupergroup,
+        getRemoteAuthenticator(getRemoteUser()));
   }
 
-  private  AuthenticationProvider getRemoteAuthenticator(final String remoteUser,
-      final Set<String> groups) {
+  private  AuthenticationProvider getRemoteAuthenticator(final UserGroupInformation remoteUser) {
     return new AuthenticationProvider() {
       @Override
       public String getUserName() {
-        return remoteUser;
+        return remoteUser.getShortUserName();
       }
 
       @Override
       public Set<String> getGroupNames() {
-        return groups;
+        return new LinkedHashSet<String>(remoteUser.getGroupNames());
       }
     };
   }
@@ -610,27 +574,18 @@ public class MasterInfo extends ImageWriter {
             + ". Component " + pathNames[pathIndex - 1] + " is not a directory.");
       }
 
-      InodesInPath iip = resolve(mRoot, path);
-      if (iip.getLastINode() != null ) {
-        LOG.info("FileAlreadyExistException: " + path);
-        throw new FileAlreadyExistException(path.toString());
-      }
       /**
        * permission checker
        */
       checkAncestorAccess(path, AclPermission.WRITE);
 
-      String remoteUser = getRemoteUser();
-      String group = getPrimaryGroup(remoteUser);
       InodeFolder currentInodeFolder = (InodeFolder) inodeTraversal.getFirst();
       // Fill in the directories that were missing.
       for (int k = pathIndex; k < parentPath.length; k ++) {
-        Acl acl = new Acl.Builder().build(remoteUser, group, Constants.DEFAULT_DIR_PERMISSION);
-        acl.umask(getTachyonConf());
         Inode dir =
             new InodeFolder(pathNames[k], mInodeCounter.incrementAndGet(),
-                currentInodeFolder.getId(), creationTimeMs);
-        dir.setAcl(acl);
+                currentInodeFolder.getId(), creationTimeMs,
+                AclUtil.getDefault(getRemoteUser(), mTachyonConf, true));
         dir.setPinned(currentInodeFolder.isPinned());
         currentInodeFolder.addChild(dir);
         currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
@@ -638,22 +593,28 @@ public class MasterInfo extends ImageWriter {
         currentInodeFolder = (InodeFolder) dir;
       }
 
-      Inode ret = null;
+      // Create the final path component. First we need to make sure that there isn't already a file
+      // here with that name. If there is an existing file that is a directory and we're creating a
+      // directory, we just return the existing directory's id.
+      Inode ret = currentInodeFolder.getChild(name);
+      if (ret != null) {
+        if (ret.isDirectory() && directory) {
+          return ret.getId();
+        }
+        LOG.info("FileAlreadyExistException: " + path);
+        throw new FileAlreadyExistException(path.toString());
+      }
+
       if (directory) {
-        Acl acl = new Acl.Builder().build(remoteUser, group, Constants.DEFAULT_DIR_PERMISSION);
-        acl.umask(getTachyonConf());
         ret =
             new InodeFolder(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
-                creationTimeMs);
-        ret.setAcl(acl);
+                creationTimeMs, AclUtil.getDefault(getRemoteUser(), mTachyonConf, true));
         ret.setPinned(currentInodeFolder.isPinned());
       } else {
-        Acl acl = new Acl.Builder().build(remoteUser, group, Constants.DEFAULT_FILE_PERMISSION);
-        acl.umask(getTachyonConf());
         ret =
             new InodeFile(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
-                blockSizeByte, creationTimeMs);
-        ret.setAcl(acl);
+                blockSizeByte, creationTimeMs,
+                AclUtil.getDefault(getRemoteUser(), mTachyonConf, false));
         ret.setPinned(currentInodeFolder.isPinned());
         if (ret.isPinned()) {
           mPinnedInodeFileIds.add(ret.getId());
@@ -930,7 +891,8 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
-  void _setPinned(int fileId, boolean pinned, long opTimeMs) throws FileDoesNotExistException {
+  void _setPinned(int fileId, boolean pinned, long opTimeMs) throws FileDoesNotExistException,
+      AccessControlException {
     LOG.info("setPinned(" + fileId + ", " + pinned + ")");
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fileId);
@@ -938,6 +900,8 @@ public class MasterInfo extends ImageWriter {
       if (inode == null) {
         throw new FileDoesNotExistException("Failed to find inode" + fileId);
       }
+
+      checkOwner(getPath(inode));
 
       _recomputePinnedFiles(inode, Optional.of(pinned), opTimeMs);
     }
@@ -2435,7 +2399,8 @@ public class MasterInfo extends ImageWriter {
   }
 
   /** Sets the isPinned flag on the given inode and all of its children. */
-  public void setPinned(int fileId, boolean pinned) throws FileDoesNotExistException {
+  public void setPinned(int fileId, boolean pinned) throws AccessControlException,
+      FileDoesNotExistException {
     long opTimeMs = System.currentTimeMillis();
     synchronized (mRootLock) {
       _setPinned(fileId, pinned, opTimeMs);
@@ -2772,7 +2737,7 @@ public class MasterInfo extends ImageWriter {
    * @param path
    * @return the specified number of existing INodes in the path
    */
-  private InodesInPath resolve(final InodeFolder startingFolder, TachyonURI path) {
+  public static InodesInPath resolve(final InodeFolder startingFolder, TachyonURI path) {
     try {
       String[] pathByNameArr = CommonUtils.getPathComponents(path.toString());
       Preconditions.checkArgument(startingFolder.getName().equals(pathByNameArr[0]));

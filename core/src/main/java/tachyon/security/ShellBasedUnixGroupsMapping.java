@@ -16,15 +16,35 @@
 package tachyon.security;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 
 import tachyon.util.CommonUtils;
-
+/**
+ * A simple shell-based implementation of {@link GroupMappingServiceProvider}
+ * that exec's the <code>groups</code> shell command to fetch the group
+ * memberships of a given user.
+ */
 public class ShellBasedUnixGroupsMapping implements GroupMappingServiceProvider {
 
+  /**
+   * Returns list of groups for a user
+   *
+   * @param user get groups for this user
+   * @return list of groups for a given user
+   */
   @Override
-  public Set<String> getGroups(String user) throws IOException {
+  public List<String> getGroups(String user) throws IOException {
     return CommonUtils.getUnixGroups(user);
+  }
+
+  @Override
+  public void cacheGroupsRefresh() throws IOException {
+    // does nothing in this provider of user to groups mapping
+  }
+
+  @Override
+  public void cacheGroupsAdd(List<String> groups) throws IOException {
+    // does nothing in this provider of user to groups mapping
   }
 
 }

@@ -236,7 +236,7 @@ service MasterService {
       3: InvalidPathException eI, 4: AccessControlException eAC)
 
   void user_setPinned(1: i32 fileId, 2: bool pinned)
-    throws (1: FileDoesNotExistException e)
+    throws (1: FileDoesNotExistException eF, 2:AccessControlException eA)
 
   bool user_mkdirs(1: string path, 2: bool recursive)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TachyonException eT, 4: AccessControlException eAC)

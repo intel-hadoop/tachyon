@@ -16,6 +16,7 @@
 package tachyon.security;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.hadoop.security.Groups;
@@ -27,10 +28,21 @@ import org.apache.hadoop.security.Groups;
 public interface GroupMappingServiceProvider {
   /**
    * Get all various group memberships of a given user.
-   * Returns EMPTY set in case of non-existing user
+   * Returns EMPTY list in case of non-existing user
    * @param user User's name
    * @return group memberships of user
    * @throws IOException
    */
-  public Set<String> getGroups(String user) throws IOException;
+  public List<String> getGroups(String user) throws IOException;
+  /**
+   * Refresh the cache of groups and user mapping
+   * @throws IOException
+   */
+  public void cacheGroupsRefresh() throws IOException;
+  /**
+   * Caches the group user information
+   * @param groups list of groups to add to cache
+   * @throws IOException
+   */
+  public void cacheGroupsAdd(List<String> groups) throws IOException;
 }
