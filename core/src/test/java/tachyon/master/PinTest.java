@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -94,33 +94,33 @@ public class PinTest {
 
     // Child file should be pinned
     int file0Id = mTfs.createFile(new TachyonURI("/file0"));
-    assertTrue(mMasterInfo.getClientFileInfo(file0Id).isPinned);
+    assertTrue(mTfs.getFile(file0Id).needPin());
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id));
 
     // Child folder should be pinned
     mTfs.mkdir(new TachyonURI("/folder"));
     int folderId = mTfs.getFileId(new TachyonURI("/folder"));
-    assertTrue(mMasterInfo.getClientFileInfo(folderId).isPinned);
+    assertTrue(mTfs.getFile(folderId).needPin());
 
     // Granchild file also pinned
     int file1Id = mTfs.createFile(new TachyonURI("/folder/file1"));
-    assertTrue(mMasterInfo.getClientFileInfo(file1Id).isPinned);
+    assertTrue(mTfs.getFile(file1Id).needPin());
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id, file1Id));
 
     // Unpinning child folder should cause its children to be unpinned as well
     mTfs.unpinFile(folderId);
-    assertFalse(mMasterInfo.getClientFileInfo(folderId).isPinned);
-    assertFalse(mMasterInfo.getClientFileInfo(file1Id).isPinned);
+    assertFalse(mTfs.getFile(folderId).needPin());
+    assertFalse(mTfs.getFile(file1Id).needPin());
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id));
 
     // And new grandchildren should be unpinned too.
     int file2Id = mTfs.createFile(new TachyonURI("/folder/file2"));
-    assertFalse(mMasterInfo.getClientFileInfo(file2Id).isPinned);
+    assertFalse(mTfs.getFile(file2Id).needPin());
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id));
 
     // But toplevel children still should be pinned!
     int file3Id = mTfs.createFile(new TachyonURI("/file3"));
-    assertTrue(mMasterInfo.getClientFileInfo(file3Id).isPinned);
+    assertTrue(mTfs.getFile(file3Id).needPin());
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id, file3Id));
   }
 }

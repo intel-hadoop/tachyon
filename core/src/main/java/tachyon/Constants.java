@@ -56,10 +56,12 @@ public class Constants {
   public static final int DEFAULT_FS_PERMISSIONS_UMASK = 0022;
   public static final String FS_PERMISSIONS_SUPERGROUP = "tfs.permission.supergroup";
   public static final String FS_PERMISSIONS_SUPERGROUP_DEFAULT = "supergroup";
+  public static final String FS_PERMISSIONS_ENABLED_KEY = "tfs.permissions.enabled";
+  public static final boolean FS_PERMISSIONS_ENABLED_DEFAULT = true;
   // Default permission of directory
   public static final short DEFAULT_DIR_PERMISSION = 0777;
   // Default permission of file
-  public static final short DEFAULT_FILE_PERMISSION = 0644;
+  public static final short DEFAULT_FILE_PERMISSION = 0666;
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;

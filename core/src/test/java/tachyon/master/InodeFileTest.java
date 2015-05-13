@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -29,6 +29,9 @@ import org.junit.Test;
 import tachyon.conf.TachyonConf;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
+import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclUtil;
+import tachyon.security.UserGroupInformation;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -216,6 +219,21 @@ public class InodeFileTest {
     Assert.assertTrue(inodeFile.isPinned());
     inodeFile.setPinned(false);
     Assert.assertFalse(inodeFile.isPinned());
+  }
+
+  @Test
+  public void setAclTest() {
+    Acl acl = AclUtil.get("test1", "test1", (short)0644);
+    InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis(), acl);
+    Assert.assertEquals(inodeFile.getAcl().getUserName(), "test1");
+    Assert.assertEquals(inodeFile.getAcl().getGroupName(), "test1");
+    Assert.assertEquals(inodeFile.getAcl().toShort(), 0644);
+    inodeFile.getAcl().setGroupOwner("test3");
+    inodeFile.getAcl().setUserOwner("test2");
+    inodeFile.getAcl().setPermission((short)0600);
+    Assert.assertEquals(inodeFile.getAcl().getUserName(), "test2");
+    Assert.assertEquals(inodeFile.getAcl().getGroupName(), "test3");
+    Assert.assertEquals(inodeFile.getAcl().toShort(), 0600);
   }
 
   @Test(expected = BlockInfoException.class)

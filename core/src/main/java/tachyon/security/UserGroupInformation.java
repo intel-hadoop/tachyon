@@ -17,6 +17,7 @@ package tachyon.security;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,7 +35,9 @@ import javax.security.auth.spi.LoginModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -251,6 +254,25 @@ public class UserGroupInformation {
     return result;
   }
 
+  /**
+   * Create a UGI for testing
+   * @param user the full user principal name
+   * @param groups the names of the groups that the user belongs to
+   * @return a fake user for running unit tests
+   */
+  @VisibleForTesting
+  public static UserGroupInformation createTestUser(String user, String...groups) {
+    ensureInitialized();
+    TestingGroups testGroups = new TestingGroups(sGroups);
+    testGroups.setUserGroups(user, groups);
+    sGroups = testGroups;
+
+    Subject subject = new Subject();
+    subject.getPrincipals().add(new User(user));
+    UserGroupInformation result = new UserGroupInformation(subject);
+    return result;
+  }
+
   public static synchronized UserGroupInformation getTachyonLoginUser()
       throws IOException {
     if (sLoginUser == null) {
@@ -309,5 +331,32 @@ public class UserGroupInformation {
       throw new IOException("There is no primary group for UGI " + this);
     }
     return groups.get(0);
+  }
+
+  /**
+   * This class is used for storing the groups for testing. It stores a local
+   * map that has the translation of usernames to groups.
+   */
+  private static class TestingGroups extends Groups {
+    private final Map<String, List<String>> mUserToGroupsMapping =
+        new HashMap<String,List<String>>();
+    private Groups mImpl;
+
+    private TestingGroups(Groups impl) {
+      mImpl = impl;
+    }
+
+    @Override
+    public List<String> getGroups(String user) throws IOException {
+      List<String> result = mUserToGroupsMapping.get(user);
+      if (result == null) {
+        return mImpl.getGroups(user);
+      }
+      return result;
+    }
+
+    private void setUserGroups(String user, String...groups) {
+      mUserToGroupsMapping.put(user, Arrays.asList(groups));
+    }
   }
 }

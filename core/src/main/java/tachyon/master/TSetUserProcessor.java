@@ -20,6 +20,8 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSaslServerTransport;
 import org.apache.thrift.transport.TTransport;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import tachyon.security.UserGroupInformation;
 import tachyon.thrift.MasterService;
 
@@ -45,6 +47,11 @@ public class TSetUserProcessor<T extends MasterService.Iface> extends MasterServ
 
   public static UserGroupInformation getRemoteUser() {
     return UGI_TL.get();
+  }
+
+  @VisibleForTesting
+  public static void setRemoteUser(UserGroupInformation ugi) {
+    UGI_TL.set(ugi);
   }
 
   private void setUserName(final TProtocol in) {

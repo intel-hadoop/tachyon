@@ -305,6 +305,7 @@ public class MasterInfo extends ImageWriter {
   private final String mUFSDataFolder;
   private final UserGroupInformation mFsOwner;
   private final String mSupergroup;
+  private boolean mPermissionEnabled;
 
   public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService executorService,
       TachyonConf tachyonConf) throws IOException {
@@ -317,9 +318,10 @@ public class MasterInfo extends ImageWriter {
     mFsOwner = UserGroupInformation.getTachyonLoginUser();
     mSupergroup = tachyonConf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
         Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT);
-
+    mPermissionEnabled = tachyonConf.getBoolean(Constants.FS_PERMISSIONS_ENABLED_KEY,
+        Constants.FS_PERMISSIONS_ENABLED_DEFAULT);
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1,System.currentTimeMillis(),
-        AclUtil.getDefault(mFsOwner, mTachyonConf, true));
+        AclUtil.get(mFsOwner.getShortUserName(), mSupergroup, mTachyonConf, true));
     mFileIdToInodes.put(mRoot.getId(), mRoot);
 
     mMasterAddress = address;
@@ -342,21 +344,7 @@ public class MasterInfo extends ImageWriter {
 
   private FsPermissionChecker getPermissionChecker() throws AccessControlException {
     return new FsPermissionChecker(mFsOwner.getShortUserName(), mSupergroup,
-        getRemoteAuthenticator(getRemoteUser()));
-  }
-
-  private  AuthenticationProvider getRemoteAuthenticator(final UserGroupInformation remoteUser) {
-    return new AuthenticationProvider() {
-      @Override
-      public String getUserName() {
-        return remoteUser.getShortUserName();
-      }
-
-      @Override
-      public Set<String> getGroupNames() {
-        return new LinkedHashSet<String>(remoteUser.getGroupNames());
-      }
-    };
+        getRemoteUser());
   }
 
   /**
@@ -523,6 +511,7 @@ public class MasterInfo extends ImageWriter {
    * @param directory If true, creates an InodeFolder instead of an Inode
    * @param blockSizeByte If it's a file, the block size for the Inode
    * @param creationTimeMs The time the file was created
+   * @param acl the acl of the inode
    * @return the id of the inode created at the given path
    * @throws FileAlreadyExistException
    * @throws InvalidPathException
@@ -530,7 +519,7 @@ public class MasterInfo extends ImageWriter {
    * @throws TachyonException
    */
   int _createFile(boolean recursive, TachyonURI path, boolean directory, long blockSizeByte,
-      long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
+      long creationTimeMs, Acl acl) throws FileAlreadyExistException, InvalidPathException,
       BlockInfoException, AccessControlException, TachyonException {
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistException: " + path);
@@ -585,7 +574,7 @@ public class MasterInfo extends ImageWriter {
         Inode dir =
             new InodeFolder(pathNames[k], mInodeCounter.incrementAndGet(),
                 currentInodeFolder.getId(), creationTimeMs,
-                AclUtil.getDefault(getRemoteUser(), mTachyonConf, true));
+                AclUtil.get(acl.getUserName(), acl.getGroupName(), mTachyonConf, true));
         dir.setPinned(currentInodeFolder.isPinned());
         currentInodeFolder.addChild(dir);
         currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
@@ -608,13 +597,12 @@ public class MasterInfo extends ImageWriter {
       if (directory) {
         ret =
             new InodeFolder(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
-                creationTimeMs, AclUtil.getDefault(getRemoteUser(), mTachyonConf, true));
+                creationTimeMs, acl);
         ret.setPinned(currentInodeFolder.isPinned());
       } else {
         ret =
             new InodeFile(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
-                blockSizeByte, creationTimeMs,
-                AclUtil.getDefault(getRemoteUser(), mTachyonConf, false));
+                blockSizeByte, creationTimeMs, acl);
         ret.setPinned(currentInodeFolder.isPinned());
         if (ret.isPinned()) {
           mPinnedInodeFileIds.add(ret.getId());
@@ -1070,9 +1058,12 @@ public class MasterInfo extends ImageWriter {
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
       AccessControlException, TachyonException {
     long creationTimeMs = System.currentTimeMillis();
+    Acl acl = AclUtil.get(getRemoteUser().getShortUserName(),
+        mSupergroup, mTachyonConf, directory);
     synchronized (mRootLock) {
-      int ret = _createFile(recursive, path, directory, blockSizeByte, creationTimeMs);
-      mJournal.getEditLog().createFile(recursive, path, directory, blockSizeByte, creationTimeMs);
+      int ret = _createFile(recursive, path, directory, blockSizeByte, creationTimeMs, acl);
+      mJournal.getEditLog().createFile(recursive, path, directory, blockSizeByte,
+          creationTimeMs, acl);
       mJournal.getEditLog().flush();
       return ret;
     }
@@ -1896,10 +1887,14 @@ public class MasterInfo extends ImageWriter {
   }
 
   public void init() throws IOException {
-    mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
-
-    mJournal.createImage(this);
-    mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
+    synchronized (mRoot) {
+      boolean originPermissionEnable = mPermissionEnabled;
+      mPermissionEnabled = false;//turn off permission check for editlog loading
+      mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
+      mJournal.createImage(this);
+      mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
+      mPermissionEnabled = originPermissionEnable;
+    }
     mHeartbeat =
         mExecutorService.submit(new HeartbeatThread("Master Heartbeat",
             new MasterInfoHeartbeatExecutor(), mTachyonConf.getInt(
@@ -2704,22 +2699,30 @@ public class MasterInfo extends ImageWriter {
 
   private void checkOwner(TachyonURI path)
       throws AccessControlException {
-    getPermissionChecker().check(resolve(mRoot, path), true, null, null, null);
+    if (mPermissionEnabled) {
+      getPermissionChecker().check(resolve(mRoot, path), true, null, null, null);
+    }
   }
 
   private void checkPathAccess(TachyonURI path, AclPermission access)
       throws AccessControlException {
-    getPermissionChecker().check(resolve(mRoot, path), false, null, null, access);
+    if (mPermissionEnabled) {
+      getPermissionChecker().check(resolve(mRoot, path), false, null, null, access);
+    }
   }
 
   private void checkAncestorAccess(TachyonURI path, AclPermission access)
       throws AccessControlException {
-    getPermissionChecker().check(resolve(mRoot, path), false, access, null, null);
+    if (mPermissionEnabled) {
+      getPermissionChecker().check(resolve(mRoot, path), false, access, null, null);
+    }
   }
 
   private void checkParentAccess(TachyonURI path, AclPermission access)
       throws AccessControlException {
-    getPermissionChecker().check(resolve(mRoot, path), false, null, access, null);
+    if (mPermissionEnabled) {
+      getPermissionChecker().check(resolve(mRoot, path), false, null, access, null);
+    }
   }
 
   /**

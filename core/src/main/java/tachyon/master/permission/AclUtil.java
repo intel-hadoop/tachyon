@@ -93,25 +93,37 @@ public class AclUtil {
   }
 
   /**
-   * Get the default Acl information for Inode
+   * Get the Acl information for InodeFile or InodeFolder
+   * @param owner
+   * @param group
+   * @param umask
    * @param isFolder
    * @return Acl
    */
-  public static Acl getDefault(UserGroupInformation ugi, TachyonConf conf, boolean isFolder) {
-    Acl acl = new Acl.Builder().build(ugi.getShortUserName(),
-        conf.get(Constants.FS_PERMISSIONS_SUPERGROUP, Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT),
+  public static Acl get(String owner, String group, short umask, boolean isFolder) {
+    Acl acl = get(owner, group,
         isFolder ? Constants.DEFAULT_DIR_PERMISSION : Constants.DEFAULT_FILE_PERMISSION);
-    acl.umask(conf);
+    acl.umask(umask);
     return acl;
   }
 
+  public static Acl get(String owner, String group, TachyonConf conf, boolean isFolder) {
+    return get(owner, group, getUMask(conf), isFolder);
+  }
+
+  public static Acl get(String owner, String group, short perm) {
+    return new Acl.Builder().build(owner, group, perm);
+  }
+
   public static Acl getDefault(boolean isFolder) {
+    TachyonConf conf = new TachyonConf();
     UserGroupInformation ugi = null;
     try {
       ugi = UserGroupInformation.getTachyonLoginUser();
     } catch (IOException ioe) {
       throw new RuntimeException("can't get the ugi info", ioe);
     }
-    return getDefault(ugi, new TachyonConf(), isFolder);
+    return get(ugi.getShortUserName(), conf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
+        Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT), conf, isFolder);
   }
 }

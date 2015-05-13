@@ -25,6 +25,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -38,11 +40,13 @@ import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.permission.AclUtil;
+import tachyon.security.UserGroupInformation;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -58,6 +62,7 @@ public class TFsShellTest {
   private ByteArrayOutputStream mOutput = null;
   private PrintStream mNewOutput = null;
   private PrintStream mOldOutput = null;
+  private TachyonConf mTachyonConf = null;
 
   @After
   public final void after() throws Exception {
@@ -71,6 +76,7 @@ public class TFsShellTest {
     mLocalTachyonCluster = new LocalTachyonCluster(SIZE_BYTES, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mFsShell = new TFsShell(mLocalTachyonCluster.getMasterTachyonConf());
     mOutput = new ByteArrayOutputStream();
     mNewOutput = new PrintStream(mOutput);
@@ -334,7 +340,7 @@ public class TFsShellTest {
   }
 
   @Test
-  public void lsrTest() throws IOException {
+  public void lsrTlsrTestest() throws IOException {
     int fileIdA = TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TachyonFile[] files = new TachyonFile[4];
     files[0] = mTfs.getFile(fileIdA);
@@ -343,21 +349,64 @@ public class TFsShellTest {
     files[2] = mTfs.getFile(new TachyonURI("/testRoot/testDir/testFileB"));
     int fileIdC = TestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
     files[3] = mTfs.getFile(fileIdC);
-    mFsShell.ls(new String[] {"count", "/testRoot"});
+    mFsShell.lsr(new String[] {"lsr", "/testRoot"});
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    String owner = UserGroupInformation.getTachyonLoginUser().getShortUserName();
+    String group = mTachyonConf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
+        Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT);
+
+    String format = getLineFormat(files);
     String expected = "";
-    String format = "%-10s%-25s%-15s%-5s\n";
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(10),
-            CommonUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
-            "/testRoot/testFileA");
+        String.format(format, "-", AclUtil.formatPermission((short)0644),
+            owner, group, String.valueOf(10),
+            dateFormat.format(new Date(files[0].getCreationTimeMs())),
+            "InMemory", "/testRoot/testFileA");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(0),
-            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
+        String.format(format, "d", AclUtil.formatPermission((short)0755),
+            owner, group, String.valueOf(0),
+            dateFormat.format(new Date(files[1].getCreationTimeMs())),
+            "", "/testRoot/testDir");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(30),
-            CommonUtils.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory",
-            "/testRoot/testFileC");
+        String.format(format, "-", AclUtil.formatPermission((short)0644),
+            owner, group, String.valueOf(20),
+            dateFormat.format(new Date(files[2].getCreationTimeMs())),
+            "InMemory", "/testRoot/testDir/testFileB");
+    expected +=
+        String.format(format, "-", AclUtil.formatPermission((short)0644),
+            owner, group, String.valueOf(30),
+            dateFormat.format(new Date(files[3].getCreationTimeMs())),
+            "Not InMemory", "/testRoot/testFileC");
+
     Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  private String getLineFormat(TachyonFile...files) throws IOException {
+    int maxLen = Integer.MIN_VALUE;
+    int maxOwner = Integer.MIN_VALUE;
+    int maxGroup = Integer.MIN_VALUE;
+
+    for (TachyonFile file : files) {
+      maxLen   = maxLength(maxLen, file.length());
+      maxOwner = maxLength(maxOwner, file.getOwner());
+      maxGroup = maxLength(maxGroup, file.getGroup());
+    }
+
+    StringBuilder fmt = new StringBuilder();
+    fmt.append("%s%s "); // permission string
+    fmt.append((maxOwner > 0) ? "%-" + maxOwner + "s " : "%s"); // owner
+    fmt.append((maxGroup > 0) ? "%-" + maxGroup + "s " : "%s"); // group
+    fmt.append((maxLen > 0) ? "%-" + maxLen + "s " : "%s"); //lenght
+    fmt.append("%s "); //time
+    fmt.append("%-12s "); //memory or not
+    fmt.append("%s"); //path
+    fmt.append("\n");
+    return fmt.toString();
+  }
+
+  private int maxLength(int n, Object value) {
+    return Math.max(n, (value != null) ? String.valueOf(value).length() : 0);
   }
 
   @Test
@@ -369,20 +418,31 @@ public class TFsShellTest {
     files[1] = mTfs.getFile(new TachyonURI("/testRoot/testDir"));
     int fileIdC = TestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
     files[2] = mTfs.getFile(fileIdC);
-    mFsShell.ls(new String[] {"count", "/testRoot"});
+    mFsShell.ls(new String[] {"ls", "/testRoot"});
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    String owner = UserGroupInformation.getTachyonLoginUser().getShortUserName();
+    String group = mTachyonConf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
+        Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT);
+
+    String format = getLineFormat(files);
     String expected = "";
-    String format = "%-10s%-25s%-15s%-5s\n";
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(10),
-            CommonUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
-            "/testRoot/testFileA");
+        String.format(format, "-", AclUtil.formatPermission((short)0644),
+            owner, group, String.valueOf(10),
+            dateFormat.format(new Date(files[0].getCreationTimeMs())),
+            "InMemory", "/testRoot/testFileA");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(0),
-            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
+        String.format(format, "d", AclUtil.formatPermission((short)0755),
+            owner, group, String.valueOf(0),
+            dateFormat.format(new Date(files[1].getCreationTimeMs())),
+            "", "/testRoot/testDir");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(30),
-            CommonUtils.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
-            "/testRoot/testFileC");
+        String.format(format, "-", AclUtil.formatPermission((short)0644),
+            owner, group, String.valueOf(30),
+            dateFormat.format(new Date(files[2].getCreationTimeMs())),
+            "Not InMemory", "/testRoot/testFileC");
+
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -470,8 +530,12 @@ public class TFsShellTest {
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
     mFsShell.mkdir(new String[] {"mkdir", "/testFolder1"});
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
-    Assert
-        .assertEquals(-1, mFsShell.rename(new String[] {"rename", "/testFolder1", "/testFolder"}));
+    try {
+      mFsShell.rename(new String[] {"rename", "/testFolder1", "/testFolder"});
+      Assert.fail("expected FileAlreadyExistException happend");
+    } catch (IOException ioe) {
+      Assert.assertTrue(ioe.getMessage().contains("FileAlreadyExistException"));
+    }
   }
 
   @Test

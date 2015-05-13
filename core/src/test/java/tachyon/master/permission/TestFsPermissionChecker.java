@@ -37,6 +37,7 @@ import tachyon.master.MasterInfo;
 import tachyon.master.permission.AclEntry.AclPermission;
 import tachyon.master.permission.AclEntry.AclType;
 import tachyon.security.AuthenticationProvider;
+import tachyon.security.UserGroupInformation;
 import tachyon.thrift.AccessControlException;
 
 import com.google.common.collect.Sets;
@@ -46,26 +47,20 @@ public class TestFsPermissionChecker {
   private static final String SUPERGROUP = "supergroup";
   private static final String SUPERUSER = "superuser";
 
-  private static final Map<String, Set<String>> userToGroupsMapping =
-      new HashMap<String,Set<String>>();
-  static{
-    userToGroupsMapping.put("bruce", Sets.newHashSet(""));
-    userToGroupsMapping.put("diana", Sets.newHashSet("sales"));
-    userToGroupsMapping.put("leo", Sets.newHashSet("devels"));
-    userToGroupsMapping.put("clark", Sets.newHashSet("execs"));
-  }
-
   private static final AtomicInteger inodeCounter = new AtomicInteger(0);
   private static InodeFolder inodeRoot;
 
-  private static final MockAuthenticator BRUCE = new MockAuthenticator("bruce",
-                                                     userToGroupsMapping);
-  private static final MockAuthenticator DIANA = new MockAuthenticator("diana",
-                                                     userToGroupsMapping);
-  private static final MockAuthenticator LEO = new MockAuthenticator("leo",
-                                                   userToGroupsMapping);
-  private static final MockAuthenticator CLARK = new MockAuthenticator("clark",
-                                                     userToGroupsMapping);
+  private static final UserGroupInformation BRUCE =
+      UserGroupInformation.createTestUser("bruce","");
+
+  private static final UserGroupInformation DIANA =
+      UserGroupInformation.createTestUser("diana","sales");
+
+  private static final UserGroupInformation LEO =
+      UserGroupInformation.createTestUser("leo", "devels");
+
+  private static final UserGroupInformation CLARK =
+      UserGroupInformation.createTestUser("clark", "execs");
 
   @BeforeClass
   public static void setup() throws IOException {
@@ -144,33 +139,33 @@ public class TestFsPermissionChecker {
   }
 
 
-  private void assertPermissionGranted(AuthenticationProvider authenticator, String path,
+  private void assertPermissionGranted(UserGroupInformation callUgi, String path,
       boolean doCheckOwner,AclPermission access) throws IOException {
     try {
       InodesInPath iip = MasterInfo.resolve(inodeRoot, new TachyonURI(path));
-      getPermissionChecker(authenticator).check(iip, doCheckOwner, null, null, access);
+      getPermissionChecker(callUgi).check(iip, doCheckOwner, null, null, access);
     } catch (AccessControlException e) {
-      fail("unexpected AccessControlException for user: + " + authenticator.getUserName()
+      fail("unexpected AccessControlException for user: + " + callUgi.getShortUserName()
           + ", path = " + path);
     }
   }
 
-  private void assertPermissionDenied(AuthenticationProvider authenticator, String path,
+  private void assertPermissionDenied(UserGroupInformation callUgi, String path,
       boolean doCheckOwner,AclPermission access) throws IOException {
     try {
       InodesInPath iip = MasterInfo.resolve(inodeRoot, new TachyonURI(path));
-      getPermissionChecker(authenticator).check(iip, doCheckOwner, null, null, access);
-      fail("expected AccessControlException for user: + " + authenticator.getUserName()
+      getPermissionChecker(callUgi).check(iip, doCheckOwner, null, null, access);
+      fail("expected AccessControlException for user: + " + callUgi.getShortUserName()
           + ", path = " + path);
     } catch (AccessControlException e) {
       assertTrue("Permission denied messages and username must be catched",
               e.getMessage().contains("Permission denied") &&
-              e.getMessage().contains(authenticator.getUserName()));
+              e.getMessage().contains(callUgi.getShortUserName()));
     }
   }
 
-  private FsPermissionChecker getPermissionChecker(AuthenticationProvider authenticator) {
-    return new FsPermissionChecker(SUPERUSER, SUPERGROUP, authenticator);
+  private FsPermissionChecker getPermissionChecker(UserGroupInformation ugi) {
+    return new FsPermissionChecker(SUPERUSER, SUPERGROUP, ugi);
   }
 
   @Test
@@ -380,27 +375,5 @@ public class TestFsPermissionChecker {
      * -rw-r--r-- leo   devels /file1/file2
      */
     assertPermissionGranted(CLARK, "/dir1", false, AclPermission.WRITE);
-  }
-  /**
-   * This class is used for mocking the authentication for testing.
-   */
-  private static class MockAuthenticator implements AuthenticationProvider {
-    private final String authenticator;
-    private final Map<String, Set<String>> userToGroupsMapping;
-
-    MockAuthenticator(String authenticator, Map<String, Set<String>> userToGroupsMapping) {
-      this.authenticator = authenticator;
-      this.userToGroupsMapping = userToGroupsMapping;
-    }
-
-    @Override
-    public String getUserName() {
-      return authenticator;
-    }
-
-    @Override
-    public Set<String> getGroupNames() {
-      return userToGroupsMapping.get(authenticator);
-    }
   }
 }

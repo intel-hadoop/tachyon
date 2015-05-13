@@ -77,7 +77,7 @@ public class AclTest {
     Assert.assertEquals(0664, acl.toShort());
 
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.FS_PERMISSIONS_UMASK_KEY, "002");
+    conf.set(Constants.FS_PERMISSIONS_UMASK_KEY, String.format("%d", 0022));
     acl.umask(conf);
     // after umask 0022, 0664 should change to 0644
     Assert.assertEquals(AclPermission.READ_WRITE, acl.getUserPermission());

@@ -47,6 +47,10 @@ public class Groups {
   private final LoadingCache<String, List<String>> mCache;
   private final long mCacheTimeout;
 
+  public Groups() {
+    this(new TachyonConf());
+  }
+
   public Groups(TachyonConf conf) {
     mImpl =
         ReflectionUtils.newInstance(

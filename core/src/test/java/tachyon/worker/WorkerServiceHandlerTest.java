@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -123,14 +123,14 @@ public class WorkerServiceHandlerTest {
         TestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 3);
     Assert.assertTrue(fileId1 >= 0);
-    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
+    ClientFileInfo fileInfo1 = mTfs.getFileStatus(-1,new TachyonURI("/file1"));
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     int fileId2 =
         TestUtils.createByteFile(mTfs, "/file2", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 3);
     Assert.assertTrue(fileId2 >= 0);
-    fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
-    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo(new TachyonURI("/file2"));
+    fileInfo1 = mTfs.getFileStatus(-1, new TachyonURI("/file1"));
+    ClientFileInfo fileInfo2 = mTfs.getFileStatus(-1, new TachyonURI("/file2"));
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
     int fileId3 =
@@ -140,9 +140,9 @@ public class WorkerServiceHandlerTest {
     CommonUtils.sleepMs(null,
         TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
 
-    fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
-    fileInfo2 = mMasterInfo.getClientFileInfo(new TachyonURI("/file2"));
-    ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo(new TachyonURI("/file3"));
+    fileInfo1 = mTfs.getFileStatus(-1, new TachyonURI("/file1"));
+    fileInfo2 = mTfs.getFileStatus(-1, new TachyonURI("/file2"));
+    ClientFileInfo fileInfo3 = mTfs.getFileStatus(-1, new TachyonURI("/file3"));
     Assert.assertTrue(fileId3 >= 0);
     Assert.assertEquals(0, fileInfo1.inMemoryPercentage);
     Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
@@ -178,7 +178,7 @@ public class WorkerServiceHandlerTest {
     }
     Assert.assertEquals(new OutOfSpaceException(String.format("Failed to allocate space for block!"
         + " blockId(%d) sizeBytes(%d)", blockId2, WORKER_CAPACITY_BYTES + 1)), exception);
-    
+
   }
 
   @Test

@@ -15,16 +15,15 @@
 
 package tachyon.master.permission;
 
-import java.util.Set;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.fs.permission.FsAction;
 
 import tachyon.master.Inode;
 import tachyon.master.InodesInPath;
 import tachyon.master.permission.AclEntry.AclPermission;
-import tachyon.security.AuthenticationProvider;
+import tachyon.security.UserGroupInformation;
 import tachyon.thrift.AccessControlException;
 
 /**
@@ -37,17 +36,17 @@ public class FsPermissionChecker implements AccessControlEnforcer {
   private final String mFsOwner;
   private final String mSupergroup;
   private final String mUser;
-  private final Set<String> mGroups;
+  private final List<String> mGroups;
   private final boolean mIsSuperUser;
-  private final AuthenticationProvider mAuthenticator;
+  private final UserGroupInformation mCallUgi;
 
   public FsPermissionChecker(String fsOwner, String supergroup,
-      AuthenticationProvider authenticator) {
+      UserGroupInformation ugi) {
     this.mFsOwner = fsOwner;
     this.mSupergroup = supergroup;
-    this.mAuthenticator = authenticator;
-    this.mUser = authenticator.getUserName();
-    this.mGroups = authenticator.getGroupNames();
+    this.mCallUgi = ugi;
+    this.mUser = ugi.getShortUserName();
+    this.mGroups = ugi.getGroupNames();
     this.mIsSuperUser = fsOwner.equals(mUser) || mGroups.contains(supergroup);
   }
 
@@ -59,7 +58,7 @@ public class FsPermissionChecker implements AccessControlEnforcer {
     return mUser;
   }
 
-  public Set<String> getGroups() {
+  public List<String> getGroups() {
     return mGroups;
   }
 
@@ -107,7 +106,7 @@ public class FsPermissionChecker implements AccessControlEnforcer {
       return;
     }
 
-    checkPermission(mFsOwner, mSupergroup, mAuthenticator, iip.getInodes(),
+    checkPermission(mFsOwner, mSupergroup, mCallUgi, iip.getInodes(),
         iip.getPathByNameArr(), iip.getFullPath(), iip.getInodes().length - 2,
         ancestorAccess, parentAccess, access, doCheckOwner);
   }
@@ -174,7 +173,7 @@ public class FsPermissionChecker implements AccessControlEnforcer {
 
   @Override
   public void checkPermission(String fsOwner, String supergroup,
-      AuthenticationProvider authenticator, Inode[] inodes, String[] pathByNameArr, String path,
+      UserGroupInformation callUgi, Inode[] inodes, String[] pathByNameArr, String path,
       int ancestorIndex, AclPermission ancestorAccess, AclPermission parentAccess,
       AclPermission access, boolean doCheckOwner) throws AccessControlException {
     for (; ancestorIndex >= 0 && inodes[ancestorIndex] == null; ancestorIndex-- ) {

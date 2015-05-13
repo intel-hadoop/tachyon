@@ -336,7 +336,11 @@ public class TachyonFSTest {
   public void renameFileTest2() throws IOException {
     TachyonURI uniqUri = new TachyonURI(TestUtils.uniqPath());
     int fileId = sTfs.createFile(uniqUri);
-    Assert.assertTrue(sTfs.rename(uniqUri, uniqUri));
+    try {
+      Assert.assertTrue(sTfs.rename(uniqUri, uniqUri));
+      Assert.fail("expected FileAlreadyExistException happend");
+    } catch (IOException e) {
+    }
     Assert.assertEquals(fileId, sTfs.getFileId(uniqUri));
   }
 

@@ -18,6 +18,7 @@ package tachyon.master.permission;
 import tachyon.master.Inode;
 import tachyon.master.permission.AclEntry.AclPermission;
 import tachyon.security.AuthenticationProvider;
+import tachyon.security.UserGroupInformation;
 import tachyon.thrift.AccessControlException;
 
 public interface AccessControlEnforcer {
@@ -26,7 +27,7 @@ public interface AccessControlEnforcer {
    * if the filesystem object is not accessessible by the calling Authenticator.
    * @param fsOwner Tachyon file system owner (The Tachyon master user)
    * @param supergroup super group
-   * @param authenticator The caller of check permissions
+   * @param callUgi The caller of check permissions
    * @param inodes Array of INodes for each path element in the path
    * @param pathByNameArr Array of byte arrays of the LocalName
    * @param path Path string
@@ -38,7 +39,7 @@ public interface AccessControlEnforcer {
    * @throws AccessControlException
    */
   public abstract void checkPermission(String fsOwner, String supergroup,
-      AuthenticationProvider authenticator, Inode[] inodes, String[] pathByNameArr,
+      UserGroupInformation callUgi, Inode[] inodes, String[] pathByNameArr,
       String path, int ancestorIndex, AclPermission ancestorAccess,
       AclPermission parentAccess, AclPermission access,boolean doCheckOwner)
       throws AccessControlException;

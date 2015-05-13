@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,6 +39,8 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.master.permission.AclUtil;
+import tachyon.security.UserGroupInformation;
 import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientFileInfo;
@@ -235,8 +238,10 @@ public class MasterInfoTest {
 
   private TachyonConf mMasterTachyonConf;
 
+  private UserGroupInformation mloginUser;
+
   @Test
-  public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
+  public void addCheckpoaddCheckpointTestintTest() throws FileDoesNotExistException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, FileNotFoundException,
       AccessControlException, TachyonException {
     int fileId =
@@ -556,7 +561,7 @@ public class MasterInfoTest {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     long opTimeMs = System.currentTimeMillis();
     mMasterInfo._createFile(false, new TachyonURI("/testFolder/testFile"), false,
-        Constants.DEFAULT_BLOCK_SIZE_BYTE, opTimeMs);
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, opTimeMs, AclUtil.getDefault(false));
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
@@ -679,6 +684,91 @@ public class MasterInfoTest {
       TableColumnException, AccessControlException, TachyonException {
     int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS, 1000);
     mMasterInfo.createRawTable(new TachyonURI("/testTable"), maxColumns + 1, (ByteBuffer) null);
+  }
+
+  @Test
+  public void setOwnerTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
+    TachyonURI path = new TachyonURI("/testDir1/testFile1");
+    mMasterInfo.createFile(path, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(path);
+    String testOwner = "testOwner";
+    String testGroup = "testGroup";
+    String owner = fileInfo.getOwner();
+    String group = fileInfo.getGroup();
+    Assert.assertNotEquals(testOwner, owner);
+    Assert.assertNotEquals(testGroup, group);
+    /**change the owner, not affect the group */
+    mMasterInfo.setOwner(path, testOwner, null, false);
+    fileInfo = mMasterInfo.getClientFileInfo(path);
+    Assert.assertEquals(testOwner, fileInfo.getOwner());
+    Assert.assertEquals(group, fileInfo.getGroup());
+
+    /**change the owner and the group */
+    String testOwner2 = "testOwner2";
+    mMasterInfo.setOwner(path, testOwner2, testGroup, false);
+    fileInfo = mMasterInfo.getClientFileInfo(path);
+    Assert.assertEquals(testOwner2, fileInfo.getOwner());
+    Assert.assertEquals(testGroup, fileInfo.getGroup());
+  }
+
+  @Test
+  public void setOwnerRecursiveTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
+    TachyonURI path1 = new TachyonURI("/testDir1");
+    TachyonURI path2 = new TachyonURI("/testDir1/testFile1");
+    mMasterInfo.mkdirs(path1, true);
+    mMasterInfo.createFile(path2, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+
+    String testOwner = "testOwner";
+    String testGroup = "testGroup";
+
+    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(path1);
+    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo(path2);
+    Assert.assertNotEquals(testOwner, fileInfo1.getOwner());
+    Assert.assertNotEquals(testGroup, fileInfo1.getGroup());
+    Assert.assertNotEquals(testOwner, fileInfo2.getOwner());
+    Assert.assertNotEquals(testGroup, fileInfo2.getGroup());
+
+
+    mMasterInfo.setOwner(path1, testOwner, testGroup, true);
+    fileInfo1 = mMasterInfo.getClientFileInfo(path1);
+    fileInfo2 = mMasterInfo.getClientFileInfo(path2);
+    Assert.assertEquals(testOwner, fileInfo1.getOwner());
+    Assert.assertEquals(testGroup, fileInfo1.getGroup());
+    Assert.assertEquals(testOwner, fileInfo2.getOwner());
+    Assert.assertEquals(testGroup, fileInfo2.getGroup());
+  }
+
+  @Test
+  public void setPermissionTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
+    TachyonURI path = new TachyonURI("/testDir1/testFile1");
+    mMasterInfo.createFile(path, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(path);
+    int perm = 0123;
+    Assert.assertTrue(perm != fileInfo.getPermission());
+    mMasterInfo.setPermission(path, (short)perm, false);
+    Assert.assertTrue(perm == mMasterInfo.getClientFileInfo(path).getPermission());
+  }
+
+  @Test
+  public void setPermissionRecursiveTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
+    TachyonURI path1 = new TachyonURI("/testDir1");
+    TachyonURI path2 = new TachyonURI("/testDir1/testFile1");
+    int perm = 0123;
+    mMasterInfo.mkdirs(path1, true);
+    mMasterInfo.createFile(path2, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+
+    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(path1);
+    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo(path2);
+    Assert.assertTrue(perm != fileInfo1.getPermission());
+    Assert.assertTrue(perm != fileInfo2.getPermission());
+
+    mMasterInfo.setPermission(path1, (short)perm, true);
+    Assert.assertTrue(perm == mMasterInfo.getClientFileInfo(path1).getPermission());
+    Assert.assertTrue(perm == mMasterInfo.getClientFileInfo(path2).getPermission());
   }
 
   @Test

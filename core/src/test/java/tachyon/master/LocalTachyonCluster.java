@@ -23,6 +23,7 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
+import tachyon.security.UserGroupInformation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -64,6 +65,8 @@ public final class LocalTachyonCluster {
   private TachyonConf mMasterConf;
 
   private TachyonConf mWorkerConf;
+
+  private UserGroupInformation mFsOwner;
 
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
@@ -139,6 +142,10 @@ public final class LocalTachyonCluster {
     return mWorker.getDataPort();
   }
 
+  public UserGroupInformation getFsOwner() {
+    return mFsOwner;
+  }
+
   private void deleteDir(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path, getMasterTachyonConf());
 
@@ -163,6 +170,13 @@ public final class LocalTachyonCluster {
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
 
+    /** Set the loginUser to TSetUserProcessor for directly function call from MasterInfo,
+     * because the directly call doesn't from thrift SASL framework, the TSetUserProcessor
+     * .getRetomeUser will cause NullPointException
+     * */
+    mFsOwner = UserGroupInformation.getTachyonLoginUser();
+    TSetUserProcessor.setRemoteUser(mFsOwner);
+
     mLocalhostName = NetworkUtils.getLocalHostName();
 
     mMasterConf = new TachyonConf();
@@ -171,6 +185,8 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
     mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
     mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "64");
+    //turn off
+    mMasterConf.set(Constants.FS_PERMISSIONS_ENABLED_KEY, "false");
 
     // Lower the number of threads that the cluster will spin off.
     // default thread overhead is too much.

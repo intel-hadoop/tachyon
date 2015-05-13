@@ -37,6 +37,7 @@ import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.io.Utils;
+import tachyon.master.permission.Acl;
 import tachyon.master.permission.AclUtil;
 import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
@@ -138,7 +139,8 @@ public final class EditLog {
           case CREATE_FILE: {
             info._createFile(op.getBoolean("recursive"), new TachyonURI(op.getString("path")),
                 op.getBoolean("directory"), op.getLong("blockSizeByte"),
-                op.getLong("creationTimeMs"));
+                op.getLong("creationTimeMs"), AclUtil.get(op.getString("owner"),
+                    op.getString("group"), op.getShort("permission")));
             break;
           }
           case COMPLETE_FILE: {
@@ -182,7 +184,7 @@ public final class EditLog {
             break;
           }
           case CHOWN: {
-            info.setOwner(op.getInt("fileId"), op.getString("username"), op.getString("groupname"),
+            info.setOwner(op.getInt("fileId"), op.getString("owner"), op.getString("group"),
                 op.getBoolean("recursive"));
             break;
           }
@@ -459,9 +461,10 @@ public final class EditLog {
    * @param directory If true, creates an InodeFolder instead of an Inode
    * @param blockSizeByte If it's a file, the block size for the Inode
    * @param creationTimeMs The time the file was created
+   * @param acl the acl of the inode
    */
   public synchronized void createFile(boolean recursive, TachyonURI path, boolean directory,
-      long blockSizeByte, long creationTimeMs) {
+      long blockSizeByte, long creationTimeMs, Acl acl) {
     if (mInactive) {
       return;
     }
@@ -470,7 +473,10 @@ public final class EditLog {
         new EditLogOperation(EditLogOperationType.CREATE_FILE, ++mTransactionId)
             .withParameter("recursive", recursive).withParameter("path", path.toString())
             .withParameter("directory", directory).withParameter("blockSizeByte", blockSizeByte)
-            .withParameter("creationTimeMs", creationTimeMs);
+            .withParameter("creationTimeMs", creationTimeMs)
+            .withParameter("owner", acl.getUserName())
+            .withParameter("group", acl.getGroupName())
+            .withParameter("permission", acl.toShort());
     writeOperation(operation);
   }
 
@@ -697,8 +703,8 @@ public final class EditLog {
     operation.withParameter("fileId", fileId);
     operation.withParameter("recursive", recursive);
     operation.withParameter("opTimeMs", opTimeMs);
-    operation.withParameter("username", username);
-    operation.withParameter("groupname", groupname);
+    operation.withParameter("owner", username);
+    operation.withParameter("group", groupname);
     writeOperation(operation);
   }
 
