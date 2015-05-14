@@ -295,4 +295,16 @@ public final class LocalTachyonCluster {
     mMaster.clearClients();
     mWorker.stop();
   }
+
+  /**
+   * Set the user for testing
+   * @param user
+   */
+  public void setAuthenticationUser(UserGroupInformation user) {
+    TSetUserProcessor.setRemoteUser(user);
+  }
+
+  public UserGroupInformation getAuthenticatedUser() {
+    return TSetUserProcessor.getRemoteUser();
+  }
 }

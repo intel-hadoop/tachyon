@@ -59,15 +59,19 @@ public class MasterInfoTest {
     private int depth;
     private int concurrencyDepth;
     private TachyonURI initPath;
+    private UserGroupInformation caller;
 
-    ConcurrentCreator(int depth, int concurrencyDepth, TachyonURI initPath) {
+    ConcurrentCreator(int depth, int concurrencyDepth, TachyonURI initPath,
+        UserGroupInformation caller) {
       this.depth = depth;
       this.concurrencyDepth = concurrencyDepth;
       this.initPath = initPath;
+      this.caller = caller;
     }
 
     @Override
     public Void call() throws Exception {
+      mLocalTachyonCluster.setAuthenticationUser(caller);
       exec(this.depth, this.concurrencyDepth, this.initPath);
       return null;
     }
@@ -88,7 +92,7 @@ public class MasterInfoTest {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           Callable<Void> call =
               (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
-                  path.join(Integer.toString(i))));
+                  path.join(Integer.toString(i)), caller));
           futures.add(executor.submit(call));
         }
         for (Future<Void> f : futures) {
@@ -107,15 +111,19 @@ public class MasterInfoTest {
     private int depth;
     private int concurrencyDepth;
     private TachyonURI initPath;
+    private UserGroupInformation caller;
 
-    ConcurrentDeleter(int depth, int concurrencyDepth, TachyonURI initPath) {
+    ConcurrentDeleter(int depth, int concurrencyDepth, TachyonURI initPath,
+        UserGroupInformation caller) {
       this.depth = depth;
       this.concurrencyDepth = concurrencyDepth;
       this.initPath = initPath;
+      this.caller = caller;
     }
 
     @Override
     public Void call() throws Exception {
+      mLocalTachyonCluster.setAuthenticationUser(caller);
       exec(this.depth, this.concurrencyDepth, this.initPath);
       return null;
     }
@@ -139,7 +147,7 @@ public class MasterInfoTest {
           for (int i = 0; i < FILES_PER_NODE; i ++) {
             Callable<Void> call =
                 (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1, path.join(Integer
-                    .toString(i))));
+                    .toString(i)), caller));
             futures.add(executor.submit(call));
           }
           for (Future<Void> f : futures) {
@@ -162,18 +170,21 @@ public class MasterInfoTest {
     private TachyonURI rootPath;
     private TachyonURI rootPath2;
     private TachyonURI initPath;
+    private UserGroupInformation caller;
 
     ConcurrentRenamer(int depth, int concurrencyDepth, TachyonURI rootPath, TachyonURI rootPath2,
-        TachyonURI initPath) {
+        TachyonURI initPath, UserGroupInformation caller) {
       this.depth = depth;
       this.concurrencyDepth = concurrencyDepth;
       this.rootPath = rootPath;
       this.rootPath2 = rootPath2;
       this.initPath = initPath;
+      this.caller = caller;
     }
 
     @Override
     public Void call() throws Exception {
+      mLocalTachyonCluster.setAuthenticationUser(caller);
       exec(this.depth, this.concurrencyDepth, this.initPath);
       return null;
     }
@@ -191,13 +202,13 @@ public class MasterInfoTest {
         int fileId = mMasterInfo.getFileId(srcPath);
         try {
           mMasterInfo.mkdirs(dstPath.getParent(), true);
+          mMasterInfo.rename(srcPath, dstPath);
         } catch (FileAlreadyExistException e) {
           // This is an acceptable exception to get, since we don't know if the parent has been
           // created yet by another thread.
         } catch (InvalidPathException e) {
           // This could happen if we are renaming something that's a child of the root.
         }
-        mMasterInfo.rename(srcPath, dstPath);
         Assert.assertEquals(fileId, mMasterInfo.getFileId(dstPath));
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -205,7 +216,7 @@ public class MasterInfoTest {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           Callable<Void> call =
               (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, this.rootPath,
-                  this.rootPath2, path.join(Integer.toString(i))));
+                  this.rootPath2, path.join(Integer.toString(i)), caller));
           futures.add(executor.submit(call));
         }
         for (Future<Void> f : futures) {
@@ -269,6 +280,7 @@ public class MasterInfoTest {
     mExecutorService = Executors.newFixedThreadPool(2);
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mloginUser = UserGroupInformation.getTachyonLoginUser();
   }
 
   @Test
@@ -307,7 +319,7 @@ public class MasterInfoTest {
     // Makes sure the file id's are the same between a master info and the journal it creates
     for (int i = 0; i < 5; i ++) {
       ConcurrentCreator concurrentCreator =
-          new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+          new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, mloginUser);
       concurrentCreator.call();
 
       String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
@@ -327,18 +339,18 @@ public class MasterInfoTest {
   @Test
   public void concurrentCreateTest() throws Exception {
     ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, mloginUser);
     concurrentCreator.call();
   }
 
   @Test
   public void concurrentDeleteTest() throws Exception {
     ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, mloginUser);
     concurrentCreator.call();
 
     ConcurrentDeleter concurrentDeleter =
-        new ConcurrentDeleter(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+        new ConcurrentDeleter(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, mloginUser);
     concurrentDeleter.call();
 
     Assert.assertEquals(1, mMasterInfo.ls(new TachyonURI("/"), true).size());
@@ -347,13 +359,14 @@ public class MasterInfoTest {
   @Test
   public void concurrentRenameTest() throws Exception {
     ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, mloginUser);
     concurrentCreator.call();
 
     int numFiles = mMasterInfo.ls(ROOT_PATH, true).size();
 
     ConcurrentRenamer concurrentRenamer =
-        new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2, TachyonURI.EMPTY_URI);
+        new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2,
+            TachyonURI.EMPTY_URI, mloginUser);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles, mMasterInfo.ls(ROOT_PATH2, true).size());
@@ -653,13 +666,12 @@ public class MasterInfoTest {
         new TachyonURI("/testPath"));
   }
 
-  @Test
+  @Test(expected = FileAlreadyExistException.class)
   public void renameExistingDstTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
     mMasterInfo.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     mMasterInfo.createFile(new TachyonURI("/testFile2"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    Assert.assertFalse(mMasterInfo.rename(new TachyonURI("/testFile1"),
-        new TachyonURI("/testFile2")));
+    mMasterInfo.rename(new TachyonURI("/testFile1"),new TachyonURI("/testFile2"));
   }
 
   @Test(expected = FileDoesNotExistException.class)

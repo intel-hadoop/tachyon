@@ -226,16 +226,4 @@ public final class LocalTachyonMaster {
   public TachyonConf getTachyonConf() {
     return mTachyonMaster.getTachyonConf();
   }
-
-  /**
-   * Set the mocked user
-   * @param user
-   */
-  public void setMockedAuthenticationUser(UserGroupInformation user) {
-    TSetUserProcessor.setRemoteUser(user);
-  }
-
-  public UserGroupInformation getMockedAuthenticatedUser() {
-    return TSetUserProcessor.getRemoteUser();
-  }
 }
