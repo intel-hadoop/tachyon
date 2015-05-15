@@ -17,25 +17,22 @@ package tachyon.security;
 
 import java.io.IOException;
 
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.security.authentication.AuthenticationFactory;
 
 public class SecurityUtil {
 
-  public static UserGroupInformation.AuthenticationMethod getAuthenticationMethod(TachyonConf
-                                                                                      conf) {
-    //TODO: get corresponding method from conf
-    return UserGroupInformation.AuthenticationMethod.SIMPLE;
-  }
-
   public static void login(TachyonConf conf) throws IOException {
-    // TODO: no security
-    if (false) {
+    String authType = conf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
+        AuthenticationFactory.AuthTypes.NOSASL.getAuthName());
+
+    if (authType.equalsIgnoreCase(AuthenticationFactory.AuthTypes.NOSASL.getAuthName())) {
       return;
+    } else if (authType.equalsIgnoreCase(AuthenticationFactory.AuthTypes.SIMPLE.getAuthName())) {
+      UserGroupInformation.loginUserFromSubject();
+    } else if (authType.equalsIgnoreCase(AuthenticationFactory.AuthTypes.KERBEROS.getAuthName())) {
+      //TODO: kerbores
     }
-
-    // Simple
-    //UserGroupInformation.loginUserFromOS();
-
-    // TODO: kerbores
   }
 }

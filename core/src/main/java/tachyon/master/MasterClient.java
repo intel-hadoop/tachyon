@@ -22,26 +22,19 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.callback.NameCallback;
-import javax.security.auth.callback.PasswordCallback;
-import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.SaslException;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 
-import org.apache.thrift.transport.TSaslClientTransport;
-import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -60,6 +53,8 @@ import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.security.SecurityUtil;
 import tachyon.security.UserGroupInformation;
+import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.security.authentication.PlainSaslHelper;
 import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
@@ -80,7 +75,6 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
 
 /**
  * The master server client side.
@@ -248,60 +242,32 @@ public final class MasterClient implements Closeable {
    */
   private TTransport createTransport() throws IOException {
     TTransport tTransport = null;
+    String authTypeStr = mTachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
+        AuthenticationFactory.AuthTypes.NOSASL.getAuthName());
     try {
-      if (!"noSasl".equals(mTachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION, "noSasl"))) {
+      if (authTypeStr.equalsIgnoreCase(AuthenticationFactory.AuthTypes.KERBEROS.getAuthName())) {
+        // TODO: Kerboros
+      } else if (authTypeStr.equalsIgnoreCase(
+          AuthenticationFactory.AuthTypes.SIMPLE.getAuthName())) {
         SecurityUtil.login(mTachyonConf);
-        // handle specific secure connection
-        // TODO: 1. Kerboros 2. delegation token
-
-        // 3. Plain Sasl connection with user/password
-        // TODO: define the key as a Constant
         String username = UserGroupInformation.getTachyonLoginUser().getShortUserName();
-        if (false) {
-          // TODO: ssl connection
+
+        if (mTachyonConf.getBoolean(Constants.TACHYON_SECURITY_USE_SSL, false)) {
+          // TODO: ssl
         } else {
-          // non-SSL socket transport
-          tTransport = new TSocket(NetworkUtils.getFqdnHost(mMasterAddress),
-              mMasterAddress.getPort());
+          tTransport = AuthenticationFactory.createTSocket(mMasterAddress);
         }
+
         // Overlay the SASL transport on top of the base socket transport (SSL or non-SSL)
-        tTransport = new TSaslClientTransport("PLAIN", null, null, null, new HashMap<String,
-                    String>(), new PlainCallbackHandler(username, "anonymous"), tTransport);
-      } else {
-        // TODO: Raw socket connection (non-sasl)
-        // the original code
+        tTransport = PlainSaslHelper.getPlainTransport(username, "anonymous", tTransport);
+      } else if (authTypeStr.equalsIgnoreCase(
+          AuthenticationFactory.AuthTypes.NOSASL.getAuthName())) {
+        tTransport = new TFramedTransport(AuthenticationFactory.createTSocket(mMasterAddress));
       }
     } catch (SaslException e) {
-      // TODO: handle it.
       throw e;
     }
     return tTransport;
-  }
-
-  public static class PlainCallbackHandler implements CallbackHandler {
-
-    private final String mUserName;
-    private final String mPassword;
-
-    public PlainCallbackHandler(String mUserName, String mPassword) {
-      this.mUserName = mUserName;
-      this.mPassword = mPassword;
-    }
-
-    @Override
-    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
-      for (Callback callback : callbacks) {
-        if (callback instanceof NameCallback) {
-          NameCallback nameCallback = (NameCallback) callback;
-          nameCallback.setName(mUserName);
-        } else if (callback instanceof PasswordCallback) {
-          PasswordCallback passCallback = (PasswordCallback) callback;
-          passCallback.setPassword(mPassword.toCharArray());
-        } else {
-          throw new UnsupportedCallbackException(callback);
-        }
-      }
-    }
   }
 
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {

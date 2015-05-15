@@ -189,7 +189,9 @@ public class Constants {
   public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
       tachyon.client.tcp.TCPRemoteBlockReader.class;
 
+  // Security - Authentication
   public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
+  public static final String TACHYON_SECURITY_USE_SSL = "tachyon.security.use.ssl";
 
   public static final String TACHYON_SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
   public static final String TACHYON_SECURITY_GROUPS_CACHE_SECS =

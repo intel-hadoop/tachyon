@@ -20,13 +20,11 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.thrift.TProcessor;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
@@ -43,9 +41,7 @@ import tachyon.UnderFileSystemHdfs;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.security.SecurityUtil;
-import tachyon.security.UserGroupInformation;
-import tachyon.secutiry.authentication.AuthHelper;
-import tachyon.thrift.MasterService;
+import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -155,10 +151,12 @@ public class TachyonMaster {
   }
 
   private TServerSocket createTServerSocket(InetSocketAddress address) throws TTransportException {
-    // TODO: ssl
-
-    // no-ssl
-    return new TServerSocket(address);
+    if (mTachyonConf.getBoolean(Constants.TACHYON_SECURITY_USE_SSL, false)) {
+      // TODO: ssl
+      return null;
+    } else {
+      return AuthenticationFactory.createTServerSocket(address);
+    }
   }
 
   /**
@@ -222,8 +220,7 @@ public class TachyonMaster {
   }
 
   private void loginAsTachyonUser() throws IOException {
-
-    //LOG.info("MY_PATTERN: login user is " + UserGroupInformation.getTachyonLoginUser());
+    SecurityUtil.login(mTachyonConf);
   }
 
   private void loginUnderFS() throws IOException {
@@ -260,12 +257,13 @@ public class TachyonMaster {
 
   private TServer createMasterServiceServer() {
     try {
+      AuthenticationFactory factory = new AuthenticationFactory(mTachyonConf);
       // processor
       mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
-      TProcessorFactory processorFactory = getAuthProcFactory(mMasterServiceHandler);
+      TProcessorFactory processorFactory = factory.getAuthProcFactory(mMasterServiceHandler);
 
       // transport
-      TTransportFactory tTransportFactory = AuthHelper.getAuthTransFactory();
+      TTransportFactory tTransportFactory = factory.getAuthTransFactory();
 
       // create server
       return new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
@@ -275,28 +273,6 @@ public class TachyonMaster {
     } catch (Exception e) {
       // TODO: handle it
       throw new RuntimeException(e);
-    }
-  }
-
-  private TProcessorFactory getAuthProcFactory(MasterService.Iface service) {
-    // TODO: 1. kerbores 2. ...
-
-    // Plain Sasl
-    return new PlainProcessorFactory(service);
-  }
-
-  private static final class PlainProcessorFactory extends TProcessorFactory {
-
-    private final MasterService.Iface mService;
-
-    PlainProcessorFactory(MasterService.Iface mService) {
-      super(null);
-      this.mService = mService;
-    }
-
-    @Override
-    public TProcessor getProcessor(TTransport trans) {
-      return new TSetUserProcessor<MasterService.Iface>(mService);
     }
   }
 

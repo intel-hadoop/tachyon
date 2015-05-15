@@ -65,9 +65,8 @@ import tachyon.master.permission.AclEntry.AclPermission;
 import tachyon.master.permission.AclUtil;
 import tachyon.master.permission.FsPermissionChecker;
 import tachyon.security.AuthenticationProvider;
-import tachyon.security.GroupMappingServiceProvider;
-import tachyon.security.ShellBasedUnixGroupsMapping;
 import tachyon.security.UserGroupInformation;
+import tachyon.security.authentication.TSetUserProcessor;
 import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
@@ -87,7 +86,6 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
-import tachyon.util.ReflectionUtils;
 
 /**
  * A global view of filesystem in master.

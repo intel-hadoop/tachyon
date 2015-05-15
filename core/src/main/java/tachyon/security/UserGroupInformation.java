@@ -42,10 +42,8 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
-//TODO: user to group mapping
 public class UserGroupInformation {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static AuthenticationMethod sAuthenticationMethod;
   private static final String OS_LOGIN_MODULE_NAME;
   private static final Class<? extends Principal> OS_PRINCIPAL_CLASS;
   private static final boolean WINDOWS =
@@ -117,11 +115,6 @@ public class UserGroupInformation {
     return null;
   }
 
-  public static enum AuthenticationMethod {
-    SIMPLE;
-    //TODO: add kerbores, ...
-  }
-
   private static class TachyonJaasConfiguration extends Configuration{
     private static final Map<String, String> BASIC_JAAS_OPTIONS =
         new HashMap<String,String>();
@@ -130,18 +123,20 @@ public class UserGroupInformation {
         new AppConfigurationEntry(OS_LOGIN_MODULE_NAME,
             AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
             BASIC_JAAS_OPTIONS);
-    private static final AppConfigurationEntry HADOOP_LOGIN =
+    private static final AppConfigurationEntry TACHYON_LOGIN =
         new AppConfigurationEntry(TachyonLoginModule.class.getName(),
             AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
             BASIC_JAAS_OPTIONS);
 
     private static final AppConfigurationEntry[] SIMPLE = new
-        AppConfigurationEntry[]{OS_SPECIFIC_LOGIN, HADOOP_LOGIN};
+        AppConfigurationEntry[]{OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
 
     @Override
     public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
-      if ("simple".equals(appName)) {
+      if ("simple".equalsIgnoreCase(appName)) {
         return SIMPLE;
+      } else if ("kerbores".equalsIgnoreCase(appName)) {
+        // TODO: kerbores
       }
       return null;
     }
@@ -218,7 +213,6 @@ public class UserGroupInformation {
   }
 
   public static void initialized(TachyonConf conf) {
-    sAuthenticationMethod = SecurityUtil.getAuthenticationMethod(conf);
     sGroups = Groups.getUserToGroupsMappingService(conf);
     UserGroupInformation.sConf = conf;
   }

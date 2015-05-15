@@ -177,10 +177,8 @@ public class TachyonFS extends AbstractTachyonFS {
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
 
-    //TODO: auth connection in MasterClient
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mExecutorService, mTachyonConf));
-    //TODO: auth connection in WorkerClient ???
     mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService,
         mTachyonConf));
 

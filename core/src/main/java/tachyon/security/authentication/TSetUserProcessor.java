@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master;
+package tachyon.security.authentication;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;

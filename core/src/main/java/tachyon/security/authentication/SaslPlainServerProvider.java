@@ -13,47 +13,28 @@
  * the License.
  */
 
-package tachyon.secutiry.authentication;
+package tachyon.security.authentication;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
-import javax.security.auth.login.LoginException;
-import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 import javax.security.sasl.SaslServerFactory;
 import java.io.IOException;
 import java.security.Provider;
-import java.security.Security;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.thrift.transport.TSaslServerTransport;
-import org.apache.thrift.transport.TTransportFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class SaslPlainServerProvider extends Provider {
 
-import tachyon.Constants;
-
-public class AuthHelper {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  static {
-    Security.addProvider(new SaslPlainProvider());
-  }
-
-  public static class SaslPlainProvider extends Provider {
-
-    public SaslPlainProvider() {
-      super("TachyonSaslPlain", 1.0, "Tachyon Plain SASL provider");
-      put("SaslServerFactory.PLAIN", SaslPlainServerFactory.class.getName());
-    }
+  public SaslPlainServerProvider() {
+    super("TachyonSaslPlain", 1.0, "Tachyon Plain SASL provider");
+    put("SaslServerFactory.PLAIN", SaslPlainServerFactory.class.getName());
   }
 
   public static class SaslPlainServerFactory implements SaslServerFactory {
@@ -181,63 +162,5 @@ public class AuthHelper {
 
     @Override
     public void dispose() {}
-  }
-
-  public static TTransportFactory getAuthTransFactory() throws LoginException {
-    TTransportFactory tTransportFactory;
-    String authType = "NONE";
-
-    // TODO: 1. kerbores 2. ...
-
-    // the original code - no sasl
-
-    // 3. Plain Sasl
-    TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();
-    try {
-      saslFactory.addServerDefinition("PLAIN", authType, null, new HashMap<String, String>(),
-          new PlainServerCallbackHandler(authType));
-    } catch (AuthenticationException e) {
-      throw new LoginException("Error setting callback handler" + e);
-    }
-    return saslFactory;
-  }
-
-  private static final class PlainServerCallbackHandler implements CallbackHandler {
-
-    //private final AuthMethods authMethod;
-
-    PlainServerCallbackHandler(String authMethodStr) throws AuthenticationException {
-      //authMethod = AuthMethods.getValidAuthMethod(authMethodStr);
-    }
-
-    @Override
-    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
-      String username = null;
-      String password = null;
-      AuthorizeCallback ac = null;
-      
-      for (Callback callback : callbacks) {
-        if (callback instanceof NameCallback) {
-          NameCallback nc = (NameCallback) callback;
-          username = nc.getName();
-        } else if (callback instanceof PasswordCallback) {
-          PasswordCallback pc = (PasswordCallback) callback;
-          password = new String(pc.getPassword());
-        } else if (callback instanceof AuthorizeCallback) {
-          ac = (AuthorizeCallback) callback;
-        } else {
-          throw new UnsupportedCallbackException(callback);
-        }
-      }
-
-      //TODO: add under layer authentication
-//      PasswdAuthenticationProvider provider =
-//          AuthenticationProviderFactory.getAuthenticationProvider(authMethod);
-//      provider.Authenticate(username, password);
-      if (ac != null) {
-        ac.setAuthorized(true);
-      }
-      LOG.info("MY PATTERN: user is " + username + " , password is " + password);
-    }
   }
 }
