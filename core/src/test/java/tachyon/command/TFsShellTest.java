@@ -14,10 +14,6 @@
  */
 package tachyon.command;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,7 +30,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
@@ -50,6 +45,9 @@ import tachyon.security.UserGroupInformation;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Unit tests on TFsShell.
@@ -652,23 +650,75 @@ public class TFsShellTest {
   }
 
   @Test
-  // TODO
   public void chmodTest() throws IOException {
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
-    mFsShell.chmod(new String[]{""});
+    mFsShell.chmod(new String[]{"chmod", "777", "/testFile"});
+    TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
+    Assert.assertNotNull(tFile);
+    Assert.assertEquals(tFile.getPermission(), (short) 0777);
+    mFsShell.chmod(new String[]{"chmod", "u-x", "/testFile"});
+    Assert.assertEquals(tFile.getPermission(), (short) 0677);
+    mFsShell.chmod(new String[]{"chmod", "g-x", "/testFile"});
+    Assert.assertEquals(tFile.getPermission(), (short) 0667);
   }
 
   @Test
-  // TODO
+  public void chmodrTest() throws IOException {
+    mFsShell.mkdir(new String[]{"mkdir", "/testFolder1"});
+    TestUtils
+        .createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE,
+            10);
+    TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFolder1/testFile"));
+    Assert.assertNotEquals(tFile.getPermission(), (short) 0777);
+    mFsShell.chmodr(new String[]{"chmodr", "777", "/testFolder1"});
+    Assert.assertNotNull(tFile);
+    Assert.assertEquals(tFile.getPermission(), (short) 0777);
+  }
+
+  @Test
   public void chownTest() throws IOException {
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
-    mFsShell.chown(new String[]{""});
+    mFsShell.chown(new String[]{"chown", "user1", "/testFile"});
+    TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
+    Assert.assertNotNull(tFile);
+    Assert.assertEquals(tFile.getOwner(), "user1");
+    mFsShell.chown(new String[]{"chown", "user2:group2", "/testFile"});
+    Assert.assertEquals(tFile.getOwner(), "user2");
+    Assert.assertEquals(tFile.getGroup(), "group2");
   }
 
   @Test
-  // TODO
+  public void chownrTest() throws IOException {
+    mFsShell.mkdir(new String[]{"mkdir", "/testFolder1"});
+    TestUtils
+        .createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE,
+            10);
+    TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFolder1/testFile"));
+    Assert.assertNotEquals(tFile.getOwner(), "user1");
+    mFsShell.chownr(new String[]{"chownr", "user1", "/testFolder1"});
+    Assert.assertNotNull(tFile);
+    Assert.assertEquals(tFile.getOwner(), "user1");
+  }
+
+  @Test
   public void chgrpTest() throws IOException {
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
-    mFsShell.chgrp(new String[]{""});
+    mFsShell.chgrp(new String[]{"chgrp", "group1", "/testFile"});
+    TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
+    Assert.assertNotNull(tFile);
+    Assert.assertEquals(tFile.getGroup(), "group1");
+  }
+
+  @Test
+  public void chgrprTest() throws IOException {
+    mFsShell.mkdir(new String[]{"mkdir", "/testFolder1"});
+    TestUtils
+        .createByteFile(mTfs, "/testFolder1/testFile", WriteType.MUST_CACHE,
+            10);
+    TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFolder1/testFile"));
+    Assert.assertNotEquals(tFile.getGroup(), "group1");
+    mFsShell.chgrpr(new String[]{"chgrp", "group1", "/testFolder1"});
+    Assert.assertNotNull(tFile);
+    Assert.assertEquals(tFile.getGroup(), "group1");
   }
 }

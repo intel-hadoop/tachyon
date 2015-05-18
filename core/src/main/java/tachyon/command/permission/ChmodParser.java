@@ -40,7 +40,7 @@ public class ChmodParser extends PermissionParser {
   /**
    * Apply permission against specified file and determine what the new mode would be
    * 
-   * @param file File against which to apply mode
+   * @param status File against which to apply mode
    * @return File's new mode if applied.
    */
   public short applyNewPermission(ClientFileInfo status) {
