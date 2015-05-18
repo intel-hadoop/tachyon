@@ -17,8 +17,7 @@ package tachyon.master.permission;
 
 import tachyon.master.Inode;
 import tachyon.master.permission.AclEntry.AclPermission;
-import tachyon.security.AuthenticationProvider;
-import tachyon.security.UserGroupInformation;
+import tachyon.security.UserGroup;
 import tachyon.thrift.AccessControlException;
 
 public interface AccessControlEnforcer {
@@ -39,7 +38,7 @@ public interface AccessControlEnforcer {
    * @throws AccessControlException
    */
   public abstract void checkPermission(String fsOwner, String supergroup,
-      UserGroupInformation callUgi, Inode[] inodes, String[] pathByNameArr,
+      UserGroup callUgi, Inode[] inodes, String[] pathByNameArr,
       String path, int ancestorIndex, AclPermission ancestorAccess,
       AclPermission parentAccess, AclPermission access,boolean doCheckOwner)
       throws AccessControlException;

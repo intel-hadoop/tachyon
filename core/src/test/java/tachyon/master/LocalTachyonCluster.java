@@ -23,7 +23,7 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.security.UserGroupInformation;
+import tachyon.security.UserGroup;
 import tachyon.security.authentication.TSetUserProcessor;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -67,7 +67,7 @@ public final class LocalTachyonCluster {
 
   private TachyonConf mWorkerConf;
 
-  private UserGroupInformation mFsOwner;
+  private UserGroup mFsOwner;
 
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
@@ -143,7 +143,7 @@ public final class LocalTachyonCluster {
     return mWorker.getDataPort();
   }
 
-  public UserGroupInformation getFsOwner() {
+  public UserGroup getFsOwner() {
     return mFsOwner;
   }
 
@@ -175,7 +175,7 @@ public final class LocalTachyonCluster {
      * because the directly call doesn't from thrift SASL framework, the TSetUserProcessor
      * .getRetomeUser will cause NullPointException
      * */
-    mFsOwner = UserGroupInformation.getTachyonLoginUser();
+    mFsOwner = UserGroup.getTachyonLoginUser();
     TSetUserProcessor.setRemoteUser(mFsOwner);
 
     mLocalhostName = NetworkUtils.getLocalHostName();
@@ -301,11 +301,11 @@ public final class LocalTachyonCluster {
    * Set the user for testing
    * @param user
    */
-  public void setAuthenticationUser(UserGroupInformation user) {
+  public void setAuthenticationUser(UserGroup user) {
     TSetUserProcessor.setRemoteUser(user);
   }
 
-  public UserGroupInformation getAuthenticatedUser() {
+  public UserGroup getAuthenticatedUser() {
     return TSetUserProcessor.getRemoteUser();
   }
 }

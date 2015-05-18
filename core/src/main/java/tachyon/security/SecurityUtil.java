@@ -30,7 +30,7 @@ public class SecurityUtil {
     if (authType.equalsIgnoreCase(AuthenticationFactory.AuthTypes.NOSASL.getAuthName())) {
       return;
     } else if (authType.equalsIgnoreCase(AuthenticationFactory.AuthTypes.SIMPLE.getAuthName())) {
-      UserGroupInformation.loginUserFromSubject();
+      UserGroup.loginUserFromSubject();
     } else if (authType.equalsIgnoreCase(AuthenticationFactory.AuthTypes.KERBEROS.getAuthName())) {
       //TODO: kerbores
     }

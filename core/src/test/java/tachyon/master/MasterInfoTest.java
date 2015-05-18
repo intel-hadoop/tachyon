@@ -40,7 +40,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.permission.AclUtil;
-import tachyon.security.UserGroupInformation;
+import tachyon.security.UserGroup;
 import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientFileInfo;
@@ -59,10 +59,10 @@ public class MasterInfoTest {
     private int depth;
     private int concurrencyDepth;
     private TachyonURI initPath;
-    private UserGroupInformation caller;
+    private UserGroup caller;
 
     ConcurrentCreator(int depth, int concurrencyDepth, TachyonURI initPath,
-        UserGroupInformation caller) {
+        UserGroup caller) {
       this.depth = depth;
       this.concurrencyDepth = concurrencyDepth;
       this.initPath = initPath;
@@ -111,10 +111,10 @@ public class MasterInfoTest {
     private int depth;
     private int concurrencyDepth;
     private TachyonURI initPath;
-    private UserGroupInformation caller;
+    private UserGroup caller;
 
     ConcurrentDeleter(int depth, int concurrencyDepth, TachyonURI initPath,
-        UserGroupInformation caller) {
+        UserGroup caller) {
       this.depth = depth;
       this.concurrencyDepth = concurrencyDepth;
       this.initPath = initPath;
@@ -170,10 +170,10 @@ public class MasterInfoTest {
     private TachyonURI rootPath;
     private TachyonURI rootPath2;
     private TachyonURI initPath;
-    private UserGroupInformation caller;
+    private UserGroup caller;
 
     ConcurrentRenamer(int depth, int concurrencyDepth, TachyonURI rootPath, TachyonURI rootPath2,
-        TachyonURI initPath, UserGroupInformation caller) {
+        TachyonURI initPath, UserGroup caller) {
       this.depth = depth;
       this.concurrencyDepth = concurrencyDepth;
       this.rootPath = rootPath;
@@ -249,7 +249,7 @@ public class MasterInfoTest {
 
   private TachyonConf mMasterTachyonConf;
 
-  private UserGroupInformation mloginUser;
+  private UserGroup mloginUser;
 
   @Test
   public void addCheckpoaddCheckpointTestintTest() throws FileDoesNotExistException, SuspectedFileSizeException,
@@ -280,7 +280,7 @@ public class MasterInfoTest {
     mExecutorService = Executors.newFixedThreadPool(2);
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mloginUser = UserGroupInformation.getTachyonLoginUser();
+    mloginUser = UserGroup.getTachyonLoginUser();
   }
 
   @Test

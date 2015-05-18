@@ -19,9 +19,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.BeforeClass;
@@ -36,11 +33,8 @@ import tachyon.master.InodesInPath;
 import tachyon.master.MasterInfo;
 import tachyon.master.permission.AclEntry.AclPermission;
 import tachyon.master.permission.AclEntry.AclType;
-import tachyon.security.AuthenticationProvider;
-import tachyon.security.UserGroupInformation;
+import tachyon.security.UserGroup;
 import tachyon.thrift.AccessControlException;
-
-import com.google.common.collect.Sets;
 
 /** Unit tests covering TestFsPermissionChecker */
 public class TestFsPermissionChecker {
@@ -50,17 +44,17 @@ public class TestFsPermissionChecker {
   private static final AtomicInteger inodeCounter = new AtomicInteger(0);
   private static InodeFolder inodeRoot;
 
-  private static final UserGroupInformation BRUCE =
-      UserGroupInformation.createTestUser("bruce","");
+  private static final UserGroup BRUCE =
+      UserGroup.createTestUser("bruce", "");
 
-  private static final UserGroupInformation DIANA =
-      UserGroupInformation.createTestUser("diana","sales");
+  private static final UserGroup DIANA =
+      UserGroup.createTestUser("diana", "sales");
 
-  private static final UserGroupInformation LEO =
-      UserGroupInformation.createTestUser("leo", "devels");
+  private static final UserGroup LEO =
+      UserGroup.createTestUser("leo", "devels");
 
-  private static final UserGroupInformation CLARK =
-      UserGroupInformation.createTestUser("clark", "execs");
+  private static final UserGroup CLARK =
+      UserGroup.createTestUser("clark", "execs");
 
   @BeforeClass
   public static void setup() throws IOException {
@@ -139,7 +133,7 @@ public class TestFsPermissionChecker {
   }
 
 
-  private void assertPermissionGranted(UserGroupInformation callUgi, String path,
+  private void assertPermissionGranted(UserGroup callUgi, String path,
       boolean doCheckOwner,AclPermission access) throws IOException {
     try {
       InodesInPath iip = MasterInfo.resolve(inodeRoot, new TachyonURI(path));
@@ -150,7 +144,7 @@ public class TestFsPermissionChecker {
     }
   }
 
-  private void assertPermissionDenied(UserGroupInformation callUgi, String path,
+  private void assertPermissionDenied(UserGroup callUgi, String path,
       boolean doCheckOwner,AclPermission access) throws IOException {
     try {
       InodesInPath iip = MasterInfo.resolve(inodeRoot, new TachyonURI(path));
@@ -164,7 +158,7 @@ public class TestFsPermissionChecker {
     }
   }
 
-  private FsPermissionChecker getPermissionChecker(UserGroupInformation ugi) {
+  private FsPermissionChecker getPermissionChecker(UserGroup ugi) {
     return new FsPermissionChecker(SUPERUSER, SUPERGROUP, ugi);
   }
 

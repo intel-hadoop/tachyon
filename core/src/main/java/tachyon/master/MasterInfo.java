@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -64,8 +63,7 @@ import tachyon.master.permission.Acl;
 import tachyon.master.permission.AclEntry.AclPermission;
 import tachyon.master.permission.AclUtil;
 import tachyon.master.permission.FsPermissionChecker;
-import tachyon.security.AuthenticationProvider;
-import tachyon.security.UserGroupInformation;
+import tachyon.security.UserGroup;
 import tachyon.security.authentication.TSetUserProcessor;
 import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
@@ -301,7 +299,7 @@ public class MasterInfo extends ImageWriter {
 
   private final TachyonConf mTachyonConf;
   private final String mUFSDataFolder;
-  private final UserGroupInformation mFsOwner;
+  private final UserGroup mFsOwner;
   private final String mSupergroup;
   private boolean mPermissionEnabled;
 
@@ -313,7 +311,7 @@ public class MasterInfo extends ImageWriter {
 
     mRawTables = new RawTables(mTachyonConf);
 
-    mFsOwner = UserGroupInformation.getTachyonLoginUser();
+    mFsOwner = UserGroup.getTachyonLoginUser();
     mSupergroup = tachyonConf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
         Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT);
     mPermissionEnabled = tachyonConf.getBoolean(Constants.FS_PERMISSIONS_ENABLED_KEY,
@@ -336,7 +334,7 @@ public class MasterInfo extends ImageWriter {
     mJournal.loadImage(this);
   }
 
-  private UserGroupInformation getRemoteUser() {
+  private UserGroup getRemoteUser() {
     return TSetUserProcessor.getRemoteUser();
   }
 

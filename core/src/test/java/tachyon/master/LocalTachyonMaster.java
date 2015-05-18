@@ -25,7 +25,6 @@ import tachyon.UnderFileSystemCluster;
 import tachyon.UnderFileSystemsUtils;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.security.UserGroupInformation;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 

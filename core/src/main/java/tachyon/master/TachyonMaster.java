@@ -238,6 +238,7 @@ public class TachyonMaster {
   }
 
   private void setup() throws IOException, TTransportException {
+    loginAsTachyonUser();
     loginUnderFS();
     if (mZookeeperMode) {
       mEditLogProcessor.stop();

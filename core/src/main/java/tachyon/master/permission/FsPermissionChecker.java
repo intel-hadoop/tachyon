@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import tachyon.master.Inode;
 import tachyon.master.InodesInPath;
 import tachyon.master.permission.AclEntry.AclPermission;
-import tachyon.security.UserGroupInformation;
+import tachyon.security.UserGroup;
 import tachyon.thrift.AccessControlException;
 
 /**
@@ -38,10 +38,10 @@ public class FsPermissionChecker implements AccessControlEnforcer {
   private final String mUser;
   private final List<String> mGroups;
   private final boolean mIsSuperUser;
-  private final UserGroupInformation mCallUgi;
+  private final UserGroup mCallUgi;
 
   public FsPermissionChecker(String fsOwner, String supergroup,
-      UserGroupInformation ugi) {
+      UserGroup ugi) {
     this.mFsOwner = fsOwner;
     this.mSupergroup = supergroup;
     this.mCallUgi = ugi;
@@ -173,7 +173,7 @@ public class FsPermissionChecker implements AccessControlEnforcer {
 
   @Override
   public void checkPermission(String fsOwner, String supergroup,
-      UserGroupInformation callUgi, Inode[] inodes, String[] pathByNameArr, String path,
+      UserGroup callUgi, Inode[] inodes, String[] pathByNameArr, String path,
       int ancestorIndex, AclPermission ancestorAccess, AclPermission parentAccess,
       AclPermission access, boolean doCheckOwner) throws AccessControlException {
     for (; ancestorIndex >= 0 && inodes[ancestorIndex] == null; ancestorIndex-- ) {

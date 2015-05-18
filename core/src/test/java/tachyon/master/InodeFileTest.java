@@ -31,7 +31,6 @@ import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.master.permission.Acl;
 import tachyon.master.permission.AclUtil;
-import tachyon.security.UserGroupInformation;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;

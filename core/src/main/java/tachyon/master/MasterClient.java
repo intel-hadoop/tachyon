@@ -52,7 +52,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.security.SecurityUtil;
-import tachyon.security.UserGroupInformation;
+import tachyon.security.UserGroup;
 import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.security.authentication.PlainSaslHelper;
 import tachyon.thrift.AccessControlException;
@@ -249,8 +249,7 @@ public final class MasterClient implements Closeable {
         // TODO: Kerboros
       } else if (authTypeStr.equalsIgnoreCase(
           AuthenticationFactory.AuthTypes.SIMPLE.getAuthName())) {
-        SecurityUtil.login(mTachyonConf);
-        String username = UserGroupInformation.getTachyonLoginUser().getShortUserName();
+        String username = getUserName();
 
         if (mTachyonConf.getBoolean(Constants.TACHYON_SECURITY_USE_SSL, false)) {
           // TODO: ssl
@@ -259,7 +258,7 @@ public final class MasterClient implements Closeable {
         }
 
         // Overlay the SASL transport on top of the base socket transport (SSL or non-SSL)
-        tTransport = PlainSaslHelper.getPlainTransport(username, "anonymous", tTransport);
+        tTransport = PlainSaslHelper.getPlainTransport(username, "noPassword", tTransport);
       } else if (authTypeStr.equalsIgnoreCase(
           AuthenticationFactory.AuthTypes.NOSASL.getAuthName())) {
         tTransport = new TFramedTransport(AuthenticationFactory.createTSocket(mMasterAddress));
@@ -268,6 +267,13 @@ public final class MasterClient implements Closeable {
       throw e;
     }
     return tTransport;
+  }
+
+  private String getUserName() throws IOException {
+    // TODO: high layer user
+
+    // Login user
+    return UserGroup.getTachyonLoginUser().getShortUserName();
   }
 
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {

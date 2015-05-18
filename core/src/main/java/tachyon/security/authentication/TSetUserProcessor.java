@@ -22,7 +22,7 @@ import org.apache.thrift.transport.TTransport;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import tachyon.security.UserGroupInformation;
+import tachyon.security.UserGroup;
 import tachyon.thrift.MasterService;
 
 public class TSetUserProcessor<T extends MasterService.Iface> extends MasterService
@@ -41,16 +41,15 @@ public class TSetUserProcessor<T extends MasterService.Iface> extends MasterServ
     }
   }
 
-  // TODO: maybe create a class, such as UserGroupInformation, to model user's info.
-  private static final ThreadLocal<UserGroupInformation> UGI_TL =
-      new ThreadLocal<UserGroupInformation>();
+  private static final ThreadLocal<UserGroup> UGI_TL =
+      new ThreadLocal<UserGroup>();
 
-  public static UserGroupInformation getRemoteUser() {
+  public static UserGroup getRemoteUser() {
     return UGI_TL.get();
   }
 
   @VisibleForTesting
-  public static void setRemoteUser(UserGroupInformation ugi) {
+  public static void setRemoteUser(UserGroup ugi) {
     UGI_TL.set(ugi);
   }
 
@@ -58,7 +57,7 @@ public class TSetUserProcessor<T extends MasterService.Iface> extends MasterServ
     TTransport transport = in.getTransport();
     if (transport instanceof TSaslServerTransport) {
       String userName = ((TSaslServerTransport) transport).getSaslServer().getAuthorizationID();
-      UGI_TL.set(UserGroupInformation.createRemoteUser(userName));
+      UGI_TL.set(UserGroup.createRemoteUser(userName));
     }
   }
 }

@@ -37,12 +37,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
-public class UserGroupInformation {
+public class UserGroup {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String OS_LOGIN_MODULE_NAME;
   private static final Class<? extends Principal> OS_PRINCIPAL_CLASS;
@@ -62,7 +61,7 @@ public class UserGroupInformation {
   /**
    * Information about the logged in user.
    */
-  private static UserGroupInformation sLoginUser = null;
+  private static UserGroup sLoginUser = null;
   private static Groups sGroups;
   /** The configuration to use */
   private static TachyonConf sConf;
@@ -200,7 +199,7 @@ public class UserGroupInformation {
 
   public static void ensureInitialized() {
     if (sConf == null) {
-      synchronized (UserGroupInformation.class) {
+      synchronized (UserGroup.class) {
         if (sConf == null) {
           initialized(new TachyonConf());
         }
@@ -214,7 +213,7 @@ public class UserGroupInformation {
 
   public static void initialized(TachyonConf conf) {
     sGroups = Groups.getUserToGroupsMappingService(conf);
-    UserGroupInformation.sConf = conf;
+    UserGroup.sConf = conf;
   }
 
   public static synchronized void loginUserFromSubject() throws IOException {
@@ -226,7 +225,7 @@ public class UserGroupInformation {
           new TachyonJaasConfiguration());
       loginContext.login();
 
-      sLoginUser = new UserGroupInformation(subject);
+      sLoginUser = new UserGroup(subject);
     } catch (LoginException e) {
       throw new IOException("fail to login", e);
     }
@@ -236,15 +235,15 @@ public class UserGroupInformation {
    * Create a user from a login name. It is intended to be used for remote
    * users in RPC
    * @param user the full user principal name, must not be empty or null
-   * @return the UserGroupInformation for the remote user.
+   * @return the UserGroup for the remote user.
    */
-  public static UserGroupInformation createRemoteUser(String user) {
+  public static UserGroup createRemoteUser(String user) {
     if (user == null || user.isEmpty()) {
       throw new IllegalArgumentException("Null user");
     }
     Subject subject = new Subject();
     subject.getPrincipals().add(new User(user));
-    UserGroupInformation result = new UserGroupInformation(subject);
+    UserGroup result = new UserGroup(subject);
     return result;
   }
 
@@ -255,7 +254,7 @@ public class UserGroupInformation {
    * @return a fake user for running unit tests
    */
   @VisibleForTesting
-  public static UserGroupInformation createTestUser(String user, String...groups) {
+  public static UserGroup createTestUser(String user, String...groups) {
     ensureInitialized();
     TestingGroups testGroups = new TestingGroups(sGroups);
     testGroups.setUserGroups(user, groups);
@@ -263,11 +262,11 @@ public class UserGroupInformation {
 
     Subject subject = new Subject();
     subject.getPrincipals().add(new User(user));
-    UserGroupInformation result = new UserGroupInformation(subject);
+    UserGroup result = new UserGroup(subject);
     return result;
   }
 
-  public static synchronized UserGroupInformation getTachyonLoginUser()
+  public static synchronized UserGroup getTachyonLoginUser()
       throws IOException {
     if (sLoginUser == null) {
       loginUserFromSubject();
@@ -287,7 +286,7 @@ public class UserGroupInformation {
     }
   }
 
-  private UserGroupInformation(Subject subject) {
+  private UserGroup(Subject subject) {
     this.mSubject = subject;
     this.mUser = subject.getPrincipals(User.class).iterator().next();
   }

@@ -20,7 +20,7 @@ import java.io.IOException;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.permission.AclEntry.AclPermission;
-import tachyon.security.UserGroupInformation;
+import tachyon.security.UserGroup;
 
 public class AclUtil {
   private static final AclPermission[] ACL_PERMISSIONS = AclPermission.values();
@@ -117,9 +117,9 @@ public class AclUtil {
 
   public static Acl getDefault(boolean isFolder) {
     TachyonConf conf = new TachyonConf();
-    UserGroupInformation ugi = null;
+    UserGroup ugi = null;
     try {
-      ugi = UserGroupInformation.getTachyonLoginUser();
+      ugi = UserGroup.getTachyonLoginUser();
     } catch (IOException ioe) {
       throw new RuntimeException("can't get the ugi info", ioe);
     }
