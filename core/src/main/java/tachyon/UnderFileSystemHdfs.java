@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -73,10 +73,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     String glusterfsPrefix = "glusterfs:///";
     tConf.set("fs.defaultFS", fsDefaultName);
     if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      String gfsImpl = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL,
-          "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
-      String gfsMrDir = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR,
-          "glusterfs:///mapred/system");
+      String gfsImpl =
+          mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL,
+              "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
+      String gfsMrDir =
+          mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR, "glusterfs:///mapred/system");
       String gfsVolumes = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null);
       String gfsMounts = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null);
 
@@ -91,8 +92,9 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         tConf.set("fs.glusterfs.volume.fuse." + gfsVolumes, gfsMounts);
       }
     } else {
-      String ufsHdfsImpl = mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL,
-          "org.apache.hadoop.hdfs.DistributedFileSystem");
+      String ufsHdfsImpl =
+          mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL,
+              "org.apache.hadoop.hdfs.DistributedFileSystem");
       tConf.set("fs.hdfs.impl", ufsHdfsImpl);
 
       // To disable the instance cache for hdfs client, otherwise it causes the
@@ -127,7 +129,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         LOG.debug("Creating HDFS file at {}", path);
         return FileSystem.create(mFs, new Path(path), PERMISSION);
       } catch (IOException e) {
-        cnt ++;
+        cnt++;
         LOG.error(cnt + " : " + e.getMessage(), e);
         te = e;
       }
@@ -176,7 +178,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       try {
         return mFs.delete(new Path(path), recursive);
       } catch (IOException e) {
-        cnt ++;
+        cnt++;
         LOG.error(cnt + " : " + e.getMessage(), e);
         te = e;
       }
@@ -192,7 +194,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       try {
         return mFs.exists(new Path(path));
       } catch (IOException e) {
-        cnt ++;
+        cnt++;
         LOG.error(cnt + " try to check if " + path + " exists " + " : " + e.getMessage(), e);
         te = e;
       }
@@ -245,7 +247,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         FileStatus fs = mFs.getFileStatus(tPath);
         return fs.getLen();
       } catch (IOException e) {
-        cnt ++;
+        cnt++;
         LOG.error(cnt + " try to get file size for " + path + " : " + e.getMessage(), e);
       }
     }
@@ -294,7 +296,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       int i = 0;
       for (FileStatus status : files) {
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i ++] = status.getPath().toUri().toString().substring(path.length()); // mUfsPrefix
+        rtn[i++] = status.getPath().toUri().toString().substring(path.length()); // mUfsPrefix
       }
       return rtn;
     } else {
@@ -322,7 +324,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         }
         return mFs.mkdirs(new Path(path), PERMISSION);
       } catch (IOException e) {
-        cnt ++;
+        cnt++;
         LOG.error(cnt + " try to make directory for " + path + " : " + e.getMessage(), e);
         te = e;
       }
@@ -338,7 +340,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       try {
         return mFs.open(new Path(path));
       } catch (IOException e) {
-        cnt ++;
+        cnt++;
         LOG.error(cnt + " try to open " + path + " : " + e.getMessage(), e);
         te = e;
       }
@@ -365,7 +367,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       try {
         return mFs.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
-        cnt ++;
+        cnt++;
         LOG.error(cnt + " try to rename " + src + " to " + dst + " : " + e.getMessage(), e);
         te = e;
       }
@@ -395,12 +397,12 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   @Override
   public void setOwner(String path, String username, String groupname) throws IOException {
     try {
-      LOG.info("Changing file Owner " + path + " for username: " + username
-          + " groupname: " + groupname);
+      LOG.info("Changing file Owner " + path + " for username: " + username + " groupname: "
+          + groupname);
       mFs.setOwner(new Path(path), username, groupname);
     } catch (IOException e) {
-      LOG.error("Fail to change owner " + path + " for username: " + username
-          + " groupname: " + groupname, e);
+      LOG.error("Fail to change owner " + path + " for username: " + username + " groupname: "
+          + groupname, e);
       throw e;
     }
   }

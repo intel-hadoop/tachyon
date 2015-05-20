@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -60,7 +60,7 @@ public final class EditLog {
 
   /**
    * Load edit log.
-   *
+   * 
    * @param info The Master Info.
    * @param path The path of the edit logs.
    * @param currentLogFileNum The smallest completed log number that this master has not loaded
@@ -85,7 +85,7 @@ public final class EditLog {
       while (ufs.exists(curEditLogFile)) {
         LOG.info("Loading Edit Log " + curEditLogFile);
         loadSingleLog(info, curEditLogFile);
-        completedLogs ++;
+        completedLogs++;
         curEditLogFile = CommonUtils.concat(completedPath, completedLogs + ".editLog");
       }
     }
@@ -98,7 +98,7 @@ public final class EditLog {
 
   /**
    * Load one edit log.
-   *
+   * 
    * @param info The Master Info
    * @param path The path of the edit log
    * @throws IOException
@@ -137,8 +137,8 @@ public final class EditLog {
             break;
           }
           case CREATE_FILE: {
-            info._createFile(op.getBoolean("recursive"), new TachyonURI(op.getString("path")),
-                op.getBoolean("directory"), op.getLong("blockSizeByte"),
+            info._createFile(op.getBoolean("recursive"), new TachyonURI(op.getString("path")), op
+                .getBoolean("directory"), op.getLong("blockSizeByte"),
                 op.getLong("creationTimeMs"), AclUtil.get(op.getString("owner"),
                     op.getString("group"), op.getShort("permission")));
             break;
@@ -216,7 +216,7 @@ public final class EditLog {
 
   /**
    * Make the edit log up-to-date, It will delete all editlogs since sBackUpLogStartNum.
-   *
+   * 
    * @param path The path of the edit logs
    * @param info The Master Info
    */
@@ -267,7 +267,7 @@ public final class EditLog {
 
   /**
    * Create a new EditLog
-   *
+   * 
    * @param path The path of the edit logs.
    * @param inactive If a master is replaying an edit log, the current edit log is inactive.
    * @param transactionId The beginning transactionId of the edit log
@@ -294,7 +294,7 @@ public final class EditLog {
         while (mUfs.exists(toRename)) {
           mUfs.rename(toRename, dstPath);
           LOG.info("Rename " + toRename + " to " + dstPath);
-          currentLogFileNum ++;
+          currentLogFileNum++;
           sBackUpLogStartNum++;
           toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
           dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
@@ -303,7 +303,7 @@ public final class EditLog {
           dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
           mUfs.rename(path, dstPath);
           LOG.info("Rename " + path + " to " + dstPath);
-          currentLogFileNum ++;
+          currentLogFileNum++;
         }
         sBackUpLogStartNum = -1;
       }
@@ -346,7 +346,7 @@ public final class EditLog {
 
   /**
    * Log an addBlock operation. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param fileId The id of the file
    * @param blockIndex The index of the block to be added
    * @param blockLength The length of the block to be added
@@ -366,7 +366,7 @@ public final class EditLog {
 
   /**
    * Log an addCheckpoint operation. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param fileId The file to add the checkpoint
    * @param length The length of the checkpoint
    * @param checkpointPath The path of the checkpoint
@@ -403,7 +403,7 @@ public final class EditLog {
 
   /**
    * Log a completeFile operation. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param fileId The id of the file
    * @param opTimeMs The time of the completeFile operation, in milliseconds
    */
@@ -421,7 +421,7 @@ public final class EditLog {
   /**
    * Log a createDependency operation. The parameters are like creating a new Dependency. Do nothing
    * if the edit log is inactive.
-   *
+   * 
    * @param parents The input files' id of the dependency
    * @param children The output files' id of the dependency
    * @param commandPrefix The prefix of the command used for recomputation
@@ -454,7 +454,7 @@ public final class EditLog {
 
   /**
    * Log a createFile operation. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param recursive If recursive is true and the filesystem tree is not filled in all the way to
    *        path yet, it fills in the missing components.
    * @param path The path to create
@@ -474,15 +474,14 @@ public final class EditLog {
             .withParameter("recursive", recursive).withParameter("path", path.toString())
             .withParameter("directory", directory).withParameter("blockSizeByte", blockSizeByte)
             .withParameter("creationTimeMs", creationTimeMs)
-            .withParameter("owner", acl.getUserName())
-            .withParameter("group", acl.getGroupName())
+            .withParameter("owner", acl.getUserName()).withParameter("group", acl.getGroupName())
             .withParameter("permission", acl.toShort());
     writeOperation(operation);
   }
 
   /**
    * Log a createRawTable operation. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param tableId The id of the raw table
    * @param columns The number of columns in the table
    * @param metadata Additional metadata about the table
@@ -501,7 +500,7 @@ public final class EditLog {
 
   /**
    * Log a delete operation. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param fileId the file to be deleted.
    * @param recursive whether delete the file recursively or not.
    * @param opTimeMs The time of the delete operation, in milliseconds
@@ -520,7 +519,7 @@ public final class EditLog {
 
   /**
    * Delete the completed logs.
-   *
+   * 
    * @param path The path of the logs
    * @param upTo The logs in the path from 0 to upTo-1 are completed and to be deleted
    * @param conf The {@link tachyon.conf.TachyonConf} instance
@@ -529,7 +528,7 @@ public final class EditLog {
     UnderFileSystem ufs = UnderFileSystem.get(path, conf);
     String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     try {
-      for (int i = 0; i < upTo; i ++) {
+      for (int i = 0; i < upTo; i++) {
         String toDelete = CommonUtils.concat(folder, i + ".editLog");
         LOG.info("Deleting editlog " + toDelete);
         ufs.delete(toDelete, true);
@@ -564,7 +563,7 @@ public final class EditLog {
 
   /**
    * Get the current TransactionId and FlushedTransactionId
-   *
+   * 
    * @return (TransactionId, FlushedTransactionId)
    */
   public synchronized Pair<Long, Long> getTransactionIds() {
@@ -573,7 +572,7 @@ public final class EditLog {
 
   /**
    * Log a rename operation. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param fileId The id of the file to rename
    * @param dstPath The new path of the file
    * @param opTimeMs The time of the rename operation, in milliseconds
@@ -592,7 +591,7 @@ public final class EditLog {
 
   /**
    * The edit log reaches the max log size and needs rotate. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param path The path of the edit log
    */
   public void rotateEditLog(String path) {
@@ -602,14 +601,13 @@ public final class EditLog {
 
     _closeActiveStream();
     LOG.info("Edit log max size of " + mMaxLogSize + " bytes reached, rotating edit log");
-    String pathPrefix =
-        path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
+    String pathPrefix = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     LOG.info("path: " + path + " prefix: " + pathPrefix);
     try {
       if (!mUfs.exists(pathPrefix)) {
         mUfs.mkdirs(pathPrefix, true);
       }
-      String newPath = CommonUtils.concat(pathPrefix, (mCurrentLogFileNum ++) + ".editLog");
+      String newPath = CommonUtils.concat(pathPrefix, (mCurrentLogFileNum++) + ".editLog");
       mUfs.rename(path, newPath);
       LOG.info("Renamed " + path + " to " + newPath);
       mOs = mUfs.create(path);
@@ -622,7 +620,7 @@ public final class EditLog {
 
   /**
    * Changes the max log size for testing purposes.
-   *
+   * 
    * @param size
    */
   void setMaxLogSize(int size) {
@@ -631,9 +629,9 @@ public final class EditLog {
 
   /**
    * Changes backup log start number for testing purposes.
-   *
+   * 
    * Note that we must set it back to -1 when test case ended.
-   *
+   * 
    * @param num
    */
   static void setBackUpLogStartNum(int num) {
@@ -642,7 +640,7 @@ public final class EditLog {
 
   /**
    * Log a setPinned operation. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param fileId The id of the file
    * @param pinned If true, the file is never evicted from memory
    * @param opTimeMs The time of the setPinned operation, in milliseconds
@@ -661,7 +659,7 @@ public final class EditLog {
 
   /**
    * Log an updateRawTableMetadata operation. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param tableId The id of the raw table
    * @param metadata The new metadata of the raw table
    */
@@ -688,7 +686,7 @@ public final class EditLog {
 
   /**
    * Log a chown operation. Do nothing if the edit log is inactive.
-   *
+   * 
    * @param fileId The id of the file to change owner
    * @param username If it is null, the original username remains unchanged.
    * @param groupname If it is null, the original groupname remains unchanged.
@@ -714,8 +712,7 @@ public final class EditLog {
     }
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.CHMOD, ++mTransactionId)
-            .withParameter("fileId", fileId)
-            .withParameter("permission", permission)
+            .withParameter("fileId", fileId).withParameter("permission", permission)
             .withParameter("recursive", recursive).withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }

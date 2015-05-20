@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -25,8 +25,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -34,14 +34,14 @@ import tachyon.util.ReflectionUtils;
 
 /**
  * A user-to-groups mapping service.
- *
+ * 
  * {@link Groups} allows for server to get the various group memberships
  * of a given user via the {@link #getGroups(String)} call, thus ensuring
  * a consistent user-to-groups mapping and protects against vagaries of
  * different mappings on servers and clients in a Tachyon cluster.
  */
 public class Groups {
-  private static final Log LOG = LogFactory.getLog(Groups.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Groups.class);
 
   private final GroupMappingServiceProvider mImpl;
   private final LoadingCache<String, List<String>> mCache;
@@ -107,7 +107,7 @@ public class Groups {
 
   /**
    * Add groups to cache
-   *
+   * 
    * @param groups list of groups to add to cache
    */
   public void cacheGroupsAdd(List<String> groups) {

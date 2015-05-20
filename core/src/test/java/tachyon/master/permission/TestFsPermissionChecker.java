@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -167,7 +167,7 @@ public class TestFsPermissionChecker {
     /**
      * -rw-r--r-- leo   sales  /file1
      * -rw-r--r-- diana devels /file2
-     *
+     * 
      * uid=bruce, groups=
      * uid=diana, groups=sales
      * uid=leo,   groups=devels
@@ -203,7 +203,7 @@ public class TestFsPermissionChecker {
   public void testAclNamedUser() throws IOException {
     /**
      * -rw-r--r-- leo sales /file1
-     *
+     * 
      * uid=bruce, groups=
      * uid=diana, groups=sales
      * uid=leo,   groups=devels
@@ -235,7 +235,7 @@ public class TestFsPermissionChecker {
   public void testAclNamedUserDeny() throws IOException {
     /**
      * -rw-r--r-- leo devels /file1
-     *
+     * 
      * uid=bruce, groups=
      * uid=diana, groups=sales
      * uid=leo,   groups=devels
@@ -251,7 +251,7 @@ public class TestFsPermissionChecker {
 
     /**
      * -r--r--r-- leo devels /file1
-     *
+     * 
      */
     updateUserPerm(inodeFile1, AclPermission.READ);
     assertPermissionDenied(LEO, "/file1", false, AclPermission.WRITE);
@@ -262,7 +262,7 @@ public class TestFsPermissionChecker {
     /**
      * -rw-r--r-- leo   sales  /file1
      * -rw-r--r-- diana devels /file2
-     *
+     * 
      * uid=bruce, groups=
      * uid=diana, groups=sales
      * uid=leo,   groups=devels
@@ -290,7 +290,7 @@ public class TestFsPermissionChecker {
   public void testAclGroupDeny() throws IOException {
     /**
      * -rw-r--r-- bruce   sales  /file1
-     *
+     * 
      * uid=bruce, groups=
      * uid=diana, groups=sales
      * uid=leo,   groups=devels
@@ -313,7 +313,7 @@ public class TestFsPermissionChecker {
     /**
      * drwxr-xr-x clark devels  /dir1
      * drwxr-xr-x leo   execs /dir1/dir2
-     *
+     * 
      * uid=bruce, groups=
      * uid=diana, groups=sales
      * uid=leo,   groups=devels
@@ -343,7 +343,7 @@ public class TestFsPermissionChecker {
     /**
      * drwxr-xr-x diana sales  /dir1
      * -rw-r--r-- leo   devels /dir1/file1
-     *
+     * 
      * uid=bruce, groups=
      * uid=diana, groups=sales
      * uid=leo,   groups=devels

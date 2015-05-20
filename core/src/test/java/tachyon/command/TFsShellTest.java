@@ -30,6 +30,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
@@ -45,6 +46,7 @@ import tachyon.security.UserGroup;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -338,7 +340,7 @@ public class TFsShellTest {
   }
 
   @Test
-  public void lsrTlsrTestest() throws IOException {
+  public void lsrTestest() throws IOException {
     int fileIdA = TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TachyonFile[] files = new TachyonFile[4];
     files[0] = mTfs.getFile(fileIdA);

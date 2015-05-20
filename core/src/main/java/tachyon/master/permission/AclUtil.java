@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -20,6 +20,7 @@ import java.io.IOException;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.permission.AclEntry.AclPermission;
+import tachyon.master.permission.AclEntry.AclType;
 import tachyon.security.UserGroup;
 
 public class AclUtil {
@@ -94,6 +95,23 @@ public class AclUtil {
 
   /**
    * Get the Acl information for InodeFile or InodeFolder
+   * @param isFolder
+   * @return Acl
+   */
+  public static Acl getDefault(boolean isFolder) {
+    TachyonConf conf = new TachyonConf();
+    UserGroup ugi = null;
+    try {
+      ugi = UserGroup.getTachyonLoginUser();
+    } catch (IOException ioe) {
+      throw new RuntimeException("can't get the ugi info", ioe);
+    }
+    return get(ugi.getShortUserName(), conf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
+        Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT), conf, isFolder);
+  }
+
+  /**
+   * Get the Acl information for InodeFile or InodeFolder
    * @param owner
    * @param group
    * @param umask
@@ -107,23 +125,35 @@ public class AclUtil {
     return acl;
   }
 
+  /**
+   * Get the Acl information for InodeFile or InodeFolder
+   * @param owner
+   * @param group
+   * @param conf
+   * @param isFolder
+   * @return Acl
+   */
   public static Acl get(String owner, String group, TachyonConf conf, boolean isFolder) {
     return get(owner, group, getUMask(conf), isFolder);
   }
 
   public static Acl get(String owner, String group, short perm) {
-    return new Acl.Builder().build(owner, group, perm);
-  }
+    AclEntry userEntry = new AclEntry.Builder().setType(AclType.USER)
+        .setName(owner)
+        .setPermission(AclUtil.toUserPermission(perm))
+        .build();
 
-  public static Acl getDefault(boolean isFolder) {
-    TachyonConf conf = new TachyonConf();
-    UserGroup ugi = null;
-    try {
-      ugi = UserGroup.getTachyonLoginUser();
-    } catch (IOException ioe) {
-      throw new RuntimeException("can't get the ugi info", ioe);
-    }
-    return get(ugi.getShortUserName(), conf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
-        Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT), conf, isFolder);
+    AclEntry groupEntry = new AclEntry.Builder().setType(AclType.GROUP)
+        .setName(group)
+        .setPermission(AclUtil.toGroupPermission(perm))
+        .build();
+    AclEntry otherEntry = new AclEntry.Builder().setType(AclType.OTHER)
+        .setPermission(AclUtil.toOtherPermission(perm))
+        .build();
+    
+    return new Acl.Builder().setUserEntry(userEntry)
+        .setGroupEntry(groupEntry)
+        .setOtherEntry(otherEntry)
+        .build();
   }
 }

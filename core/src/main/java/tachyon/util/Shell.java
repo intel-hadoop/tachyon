@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -80,7 +80,7 @@ public abstract class Shell {
    * Returns a File referencing a script with the given basename, inside the
    * given parent directory.  The file extension is inferred by platform: ".cmd"
    * on Windows, or ".sh" otherwise.
-   *
+   * 
    * @param parent File parent directory
    * @param basename String script file basename
    * @return File referencing the script in the directory
@@ -91,7 +91,7 @@ public abstract class Shell {
 
   /**
    * Returns a script file name with the given basename.
-   *
+   * 
    * @param basename String script file basename
    * @return String script file name
    */
@@ -102,7 +102,7 @@ public abstract class Shell {
   /**
    * Returns a command to run the given script.  The script interpreter is
    * inferred by platform: cmd on Windows or bash otherwise.
-   *
+   * 
    * @param script File script to run
    * @return String[] command to run the script
    */
@@ -370,7 +370,7 @@ public abstract class Shell {
 
   /**
    * A simple shell command executor.
-   *
+   * 
    * <code>ShellCommandExecutor</code>should be used in cases where the output
    * of the command needs no explicit parsing and where the command, working
    * directory and the environment remains unchanged. The output of the command
@@ -398,7 +398,7 @@ public abstract class Shell {
 
     /**
      * Create a new instance of the ShellCommandExecutor to execute a command.
-     *
+     * 
      * @param execString The command to execute with arguments
      * @param dir If not-null, specifies the directory which should be set
      *            as the current working directory for the command.
@@ -452,7 +452,7 @@ public abstract class Shell {
      * Returns the commands of this instance.
      * Arguments with spaces in are presented with quotes round; other
      * arguments are presented raw
-     *
+     * 
      * @return a string representation of the object.
      */
     @Override
@@ -478,7 +478,7 @@ public abstract class Shell {
   /**
    * To check if the passed script to shell command executor timed out or
    * not.
-   *
+   * 
    * @return if the script timed out.
    */
   public boolean isTimedOut() {
@@ -487,7 +487,7 @@ public abstract class Shell {
 
   /**
    * Set if the command has timed out.
-   *
+   * 
    */
   private void setTimedOut() {
     this.mTimedOut.set(true);

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -88,7 +88,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
   /**
    * This function displays 5KB of a file from a specific offset if it is in ASCII format.
-   *
+   * 
    * @param path The path of the file to display
    * @param request The HttpServletRequest object
    * @param offset Where the file starts to display.
@@ -156,7 +156,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * Populates attribute fields with data from the MasterInfo associated with this servlet. Errors
    * will be displayed in an error field. Debugging can be enabled to display additional data. Will
    * eventually redirect the request to a jsp.
-   *
+   * 
    * @param request The HttpServletRequest object
    * @param response The HttpServletResponse object
    * @throws ServletException
@@ -278,7 +278,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
   /**
    * This function sets the fileinfos for folders that are in the path to the current directory.
-   *
+   * 
    * @param path The path of the current directory.
    * @param request The HttpServletRequest object
    * @throws FileDoesNotExistException

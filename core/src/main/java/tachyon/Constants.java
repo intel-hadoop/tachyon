@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -58,10 +58,18 @@ public class Constants {
   public static final String FS_PERMISSIONS_SUPERGROUP_DEFAULT = "supergroup";
   public static final String FS_PERMISSIONS_ENABLED_KEY = "tfs.permissions.enabled";
   public static final boolean FS_PERMISSIONS_ENABLED_DEFAULT = true;
-  // Default permission of directory
+  /** Default permission of directory */
   public static final short DEFAULT_DIR_PERMISSION = 0777;
-  // Default permission of file
+  /** Default permission of file */
   public static final short DEFAULT_FILE_PERMISSION = 0666;
+  /** Security - Authentication */
+  public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
+  public static final String TACHYON_SECURITY_USE_SSL = "tachyon.security.use.ssl";
+  /** Security - group Mapping */
+  public static final String TACHYON_SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
+  public static final String TACHYON_SECURITY_GROUPS_CACHE_SECS =
+      "tachyon.security.groups.cache.secs";
+  public static final long TACHYON_SECURITY_GROUPS_CACHE_SECS_DEFAULT = 300;
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
@@ -188,17 +196,4 @@ public class Constants {
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
       tachyon.client.tcp.TCPRemoteBlockReader.class;
-
-  // Security - Authentication
-  public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
-  public static final String TACHYON_SECURITY_USE_SSL = "tachyon.security.use.ssl";
-
-  public static final String TACHYON_SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
-  public static final String TACHYON_SECURITY_GROUPS_CACHE_SECS =
-      "tachyon.security.groups.cache.secs";
-  public static final long TACHYON_SECURITY_GROUPS_CACHE_SECS_DEFAULT = 300;
-  /** User->groups static mapping to override the groups lookup */
-  public static final String TACHYON_USER_GROUP_STATIC_OVERRIDES =
-      "tachyon.user.group.static.mapping.overrides";
-  public static final String TACHYON_USER_GROUP_STATIC_OVERRIDES_DEFAULT = "dr.who=;";
 }

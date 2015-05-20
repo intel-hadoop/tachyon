@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -78,7 +78,7 @@ import tachyon.util.CommonUtils;
 
 /**
  * The master server client side.
- *
+ * 
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 // TODO When TException happens, the caller can't really do anything about it.
@@ -185,8 +185,7 @@ public final class MasterClient implements Closeable {
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect master @ "
           + mMasterAddress);
 
-      mProtocol =
-          new TBinaryProtocol(createTransport());
+      mProtocol = new TBinaryProtocol(createTransport());
       mClient = new MasterService.Client(mProtocol);
       try {
         mProtocol.getTransport().open();
@@ -194,11 +193,10 @@ public final class MasterClient implements Closeable {
         HeartbeatExecutor heartBeater = new MasterClientHeartbeatExecutor(this);
 
         String threadName = "master-heartbeat-" + mMasterAddress;
-        int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
-            Constants.SECOND_MS);
+        int interval =
+            mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
         mHeartbeat =
-            mExecutorService.submit(new HeartbeatThread(threadName, heartBeater,
-                interval / 2));
+            mExecutorService.submit(new HeartbeatThread(threadName, heartBeater, interval / 2));
       } catch (TTransportException e) {
         lastException = e;
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress
@@ -228,22 +226,18 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Create transport per the connection options
-   * Supported transport options are:
-   *   - SASL based transports over
-   *      + Kerberos
-   *      + Delegation token
-   *      + SSL
-   *      + non-SSL
-   *   - Raw (non-SASL) socket
-   *
-   *   Kerberos and Delegation token supports SASL QOP configurations
+   * Create transport per the connection options Supported transport options are: - SASL based
+   * transports over + Kerberos + Delegation token + SSL + non-SSL - Raw (non-SASL) socket
+   * 
+   * Kerberos and Delegation token supports SASL QOP configurations
+   * 
    * @throws TTransportException
    */
   private TTransport createTransport() throws IOException {
     TTransport tTransport = null;
-    String authTypeStr = mTachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
-        AuthenticationFactory.AuthTypes.NOSASL.getAuthName());
+    String authTypeStr =
+        mTachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
+            AuthenticationFactory.AuthTypes.NOSASL.getAuthName());
     try {
       if (authTypeStr.equalsIgnoreCase(AuthenticationFactory.AuthTypes.KERBEROS.getAuthName())) {
         // TODO: Kerboros
@@ -256,7 +250,6 @@ public final class MasterClient implements Closeable {
         } else {
           tTransport = AuthenticationFactory.createTSocket(mMasterAddress);
         }
-
         // Overlay the SASL transport on top of the base socket transport (SSL or non-SSL)
         tTransport = PlainSaslHelper.getPlainTransport(username, "noPassword", tTransport);
       } else if (authTypeStr.equalsIgnoreCase(
@@ -756,6 +749,8 @@ public final class MasterClient implements Closeable {
         return;
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
+      } catch (AccessControlException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -798,8 +793,9 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
-  public synchronized void worker_cacheBlock(long workerId, long usedBytesOnTier, long storageDirId,
-      long blockId, long length) throws IOException, FileDoesNotExistException, BlockInfoException {
+  public synchronized void worker_cacheBlock(long workerId, long usedBytesOnTier,
+      long storageDirId, long blockId, long length) throws IOException, FileDoesNotExistException,
+      BlockInfoException {
     while (!mIsShutdown) {
       connect();
 
@@ -845,8 +841,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized Command worker_heartbeat(long workerId, List<Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
-      throws IOException {
+      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) throws IOException {
     while (!mIsShutdown) {
       connect();
 
@@ -864,7 +859,7 @@ public final class MasterClient implements Closeable {
 
   /**
    * Register the worker to the master.
-   *
+   * 
    * @param workerNetAddress Worker's NetAddress
    * @param totalBytesOnTiers Total bytes on each storage tier
    * @param usedBytesOnTiers Used bytes on each storage tier
@@ -880,8 +875,9 @@ public final class MasterClient implements Closeable {
       connect();
 
       try {
-        long ret = mClient.worker_register(workerNetAddress, totalBytesOnTiers, usedBytesOnTiers,
-            currentBlockList);
+        long ret =
+            mClient.worker_register(workerNetAddress, totalBytesOnTiers, usedBytesOnTiers,
+                currentBlockList);
         LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
             + " , got WorkerId " + ret);
         return ret;

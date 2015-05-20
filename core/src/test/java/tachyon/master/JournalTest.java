@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -53,7 +53,7 @@ public class JournalTest {
 
   /**
    * Test add block
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -94,7 +94,7 @@ public class JournalTest {
 
   /**
    * Test add checkpoint
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -133,7 +133,7 @@ public class JournalTest {
 
   /**
    * mLocalTachyonCluster is not closed in after(). Need to be closed by any test method.
-   *
+   * 
    * @throws Exception
    */
   @After
@@ -154,7 +154,7 @@ public class JournalTest {
 
   /**
    * Test completed Editlog deletion
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -178,7 +178,7 @@ public class JournalTest {
 
   /**
    * Test file and folder creation and deletion;
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -235,7 +235,7 @@ public class JournalTest {
 
   /**
    * Test file and folder creation.
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -272,7 +272,7 @@ public class JournalTest {
 
   /**
    * Test files creation.
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -348,7 +348,7 @@ public class JournalTest {
 
   /**
    * Test folder creation.
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -379,7 +379,7 @@ public class JournalTest {
 
   /**
    * Test files creation.
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -412,7 +412,7 @@ public class JournalTest {
 
   /**
    * Test reading multiple edit logs.
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -447,7 +447,7 @@ public class JournalTest {
 
   /**
    * Test renaming completed edit logs.
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -497,7 +497,7 @@ public class JournalTest {
 
   /**
    * Test file and folder creation, and rename;
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -536,7 +536,7 @@ public class JournalTest {
 
   /**
    * Test folder creation.
-   *
+   * 
    * @throws Exception
    */
   @Test

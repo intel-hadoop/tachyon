@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -17,8 +17,8 @@ package tachyon.master.permission;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.master.Inode;
 import tachyon.master.InodesInPath;
@@ -32,7 +32,7 @@ import tachyon.thrift.AccessControlException;
  * are read-only.
  */
 public class FsPermissionChecker implements AccessControlEnforcer {
-  static final Log LOG = LogFactory.getLog(FsPermissionChecker.class);
+  static final Logger LOG = LoggerFactory.getLogger(FsPermissionChecker.class);
   private final String mFsOwner;
   private final String mSupergroup;
   private final String mUser;
@@ -65,13 +65,13 @@ public class FsPermissionChecker implements AccessControlEnforcer {
   /**
    * Check whether current user have permissions to access the path.
    * Traverse is always checked.
-   *
+   * 
    * Parent path means the parent directory for the path.
    * Ancestor path means the last (the closest) existing ancestor directory
    * of the path.
    * Note that if the parent path exists,
    * then the parent path and the ancestor path are the same.
-   *
+   * 
    * For example, suppose the path is "/foo/bar/baz".
    * No matter baz is a file or a directory,
    * the parent path is "/foo/bar".
@@ -80,7 +80,7 @@ public class FsPermissionChecker implements AccessControlEnforcer {
    * then the ancestor path is "/foo".
    * Further, if both foo and bar do not exist,
    * then the ancestor path is "/".
-   *
+   * 
    * @param Inodes information to been checked
    * @param doCheckOwner Require user to be the owner of the path?
    * @param ancestorAccess The access required by the ancestor of the path.
@@ -88,9 +88,6 @@ public class FsPermissionChecker implements AccessControlEnforcer {
    * @param access The access required by the path.
    * @param subAccess If path is a directory,
    * @throws AccessControlException
-   *
-   * Guarded by {@link FSNamesystem#readLock()}
-   * Caller of this method must hold that lock.
    */
   public void check(InodesInPath iip, boolean doCheckOwner,
       AclPermission ancestorAccess, AclPermission parentAccess, AclPermission access)

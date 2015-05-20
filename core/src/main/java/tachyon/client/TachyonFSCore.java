@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -19,9 +19,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.permission.FsPermission;
-
 import tachyon.TachyonURI;
 import tachyon.thrift.ClientFileInfo;
 
@@ -31,7 +28,7 @@ import tachyon.thrift.ClientFileInfo;
 interface TachyonFSCore extends Closeable {
   /**
    * Creates a new file in the file system.
-   *
+   * 
    * @param path The path of the file
    * @param ufsPath The path of the file in the under file system. If this is empty, the file does
    *        not exist in the under file system yet.
@@ -44,7 +41,7 @@ interface TachyonFSCore extends Closeable {
 
   /**
    * Deletes a file or folder
-   *
+   * 
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
    * @param path The path of the file / folder. It could be empty if id is not -1.
@@ -57,7 +54,7 @@ interface TachyonFSCore extends Closeable {
 
   /**
    * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
-   *
+   * 
    * @param fileId the file id of the file or folder.
    * @param path the path of the file or folder. valid if fileId is -1.
    * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
@@ -71,7 +68,7 @@ interface TachyonFSCore extends Closeable {
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
    * <code>path</code> is a file, return its ClientFileInfo.
-   *
+   * 
    * @param path the target directory/file path
    * @return A list of ClientFileInfo, null if the file or folder does not exist.
    * @throws IOException
@@ -80,7 +77,7 @@ interface TachyonFSCore extends Closeable {
 
   /**
    * Creates a folder.
-   *
+   * 
    * @param path the path of the folder to be created
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return true if the folder is created successfully or already existing. false otherwise.
@@ -90,7 +87,7 @@ interface TachyonFSCore extends Closeable {
 
   /**
    * Renames a file or folder to another path.
-   *
+   * 
    * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the srcPath parameter.
    * @param srcPath The path of the source file / folder. It could be empty if id is not -1.
@@ -100,21 +97,23 @@ interface TachyonFSCore extends Closeable {
    */
   boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
 
- /**
-  * Memory free of a file or folder
-  * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-  *        Otherwise, the method uses the path parameter.
-  * @param path The path of the file / folder. It could be empty if id is not -1.
-  * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
-  *        or not
-  * @return true if in-memory free successfully, false otherwise.
-  * @throws IOException
-  */
+  /**
+   * Memory free of a file or folder
+   * 
+   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty if id is not -1.
+   * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
+   *        or not
+   * @return true if in-memory free successfully, false otherwise.
+   * @throws IOException
+   */
   boolean freepath(int fileId, TachyonURI path, boolean recursive) throws IOException;
 
   /**
-   * Set owner of a path (i.e. a file or a directory).
-   * The parameters username and groupname cannot both be null.
+   * Set owner of a path (i.e. a file or a directory). The parameters username and groupname cannot
+   * both be null.
+   * 
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
    * @param path The path of the file / folder. It could be empty if id is not -1.
@@ -124,20 +123,21 @@ interface TachyonFSCore extends Closeable {
    * @return true if setOwner successfully, false otherwise.
    * @throws IOException
    */
-  boolean setOwner(int fileId, TachyonURI path, String username, String groupname,
+  boolean setOwner(int fileId, TachyonURI path, String username, String groupname, 
       boolean recursive) throws IOException;
 
   /**
    * Set permission of a path.
+   * 
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
    * @param path The path of the file / folder. It could be empty if id is not -1.
    * @param short permission, e.g. 777
-   * @param recursive If fileId or path represents a folder, change the folder
-   *        permission recursively
+   * @param recursive If fileId or path represents a folder, change the folder permission
+   *        recursively
    * @return true if setPermission successfully, false otherwise.
    * @throws IOException
    */
-  boolean setPermission(int fileId, TachyonURI path, short permission,
-      boolean recursive) throws IOException;
+  boolean setPermission(int fileId, TachyonURI path, short permission, boolean recursive)
+      throws IOException;
 }

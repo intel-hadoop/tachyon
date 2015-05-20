@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -121,7 +121,7 @@ public final class LocalTachyonMaster {
 
   /**
    * Creates a new local tachyon master with a isolated home and port.
-   *
+   * 
    * @throws IOException unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(TachyonConf tachyonConf) throws IOException {
@@ -140,14 +140,14 @@ public final class LocalTachyonMaster {
    * before calling this method.
    * <p />
    * Clean is defined as
-   *
+   * 
    * <pre>
    * {@code
    *   UnderFileSystems.deleteDir(tachyonHome);
    *   UnderFileSystems.mkdirIfNotExists(tachyonHome);
    * }
    * </pre>
-   *
+   * 
    * @throws IOException unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(final String tachyonHome, TachyonConf tachyonConf)
@@ -161,7 +161,7 @@ public final class LocalTachyonMaster {
 
   /**
    * Stops the master and cleans up client connections.
-   *
+   * 
    * This method will not clean up {@link tachyon.UnderFileSystemsUtils} data. To do that you must
    * call {@link #cleanupUnderfs()}.
    */

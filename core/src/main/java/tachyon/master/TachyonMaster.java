@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -161,7 +161,7 @@ public class TachyonMaster {
 
   /**
    * Get MasterInfo instance for Unit Test
-   *
+   * 
    * @return MasterInfo of the Master
    */
   MasterInfo getMasterInfo() {
@@ -170,7 +170,7 @@ public class TachyonMaster {
 
   /**
    * Gets the underlying {@link tachyon.conf.TachyonConf} instance for the Worker.
-   *
+   * 
    * @return TachyonConf of the Master
    */
   public TachyonConf getTachyonConf() {
@@ -203,7 +203,7 @@ public class TachyonMaster {
 
   /**
    * Get wehether the system is the leader under zookeeper mode, for unit test only.
-   *
+   * 
    * @return true if the system is the leader under zookeeper mode, false otherwise.
    */
   boolean isStarted() {
@@ -212,15 +212,11 @@ public class TachyonMaster {
 
   /**
    * Get whether the system is for zookeeper mode, for unit test only.
-   *
+   * 
    * @return true if the master is under zookeeper mode, false otherwise.
    */
   boolean isZookeeperMode() {
     return mZookeeperMode;
-  }
-
-  private void loginAsTachyonUser() throws IOException {
-    SecurityUtil.login(mTachyonConf);
   }
 
   private void loginUnderFS() throws IOException {
@@ -238,7 +234,6 @@ public class TachyonMaster {
   }
 
   private void setup() throws IOException, TTransportException {
-    loginAsTachyonUser();
     loginUnderFS();
     if (mZookeeperMode) {
       mEditLogProcessor.stop();

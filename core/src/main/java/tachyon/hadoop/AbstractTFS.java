@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -51,7 +51,7 @@ import tachyon.util.UfsUtils;
 /**
  * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
  * to {@link tachyon.client.TachyonFS} for most operations.
- *
+ * 
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
@@ -168,7 +168,7 @@ abstract class AbstractTFS extends FileSystem {
     } else {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       int fileId;
-      WriteType type =  getWriteType();
+      WriteType type = getWriteType();
       if (mTFS.exist(path)) {
         fileId = mTFS.getFileId(path);
         type = WriteType.MUST_CACHE;
@@ -191,7 +191,7 @@ abstract class AbstractTFS extends FileSystem {
    * <p>
    * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
    * create(), except fails if parent directory doesn't already exist.
-   *
+   * 
    * @param cPath the file name to open
    * @param overwrite if a file with this name already exists, then if true, the file will be
    *        overwritten, and if false an error will be thrown.
@@ -240,8 +240,8 @@ abstract class AbstractTFS extends FileSystem {
       FileSystem fs = hdfsPath.getFileSystem(conf);
       if (fs.exists(hdfsPath)) {
         TachyonURI ufsUri = new TachyonURI(mUnderFSAddress);
-        TachyonURI ufsAddrPath = new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(),
-            path.getPath());
+        TachyonURI ufsAddrPath =
+            new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(), path.getPath());
         // Set the path as the TFS root path.
         UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null), mTachyonConf);
       }
@@ -271,7 +271,7 @@ abstract class AbstractTFS extends FileSystem {
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
     List<ClientBlockInfo> blocks = mTFS.getFileBlocks(fileId);
-    for (int k = 0; k < blocks.size(); k ++) {
+    for (int k = 0; k < blocks.size(); k++) {
       ClientBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
       long end = offset + info.getLength();
@@ -288,7 +288,7 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     BlockLocation[] ret = new BlockLocation[blockLocations.size()];
-    for (int k = 0; k < blockLocations.size(); k ++) {
+    for (int k = 0; k < blockLocations.size(); k++) {
       ret[k] = blockLocations.get(k);
     }
     return ret;
@@ -316,14 +316,15 @@ abstract class AbstractTFS extends FileSystem {
     FileStatus ret =
         new FileStatus(file.length(), file.isDirectory(), file.getDiskReplication(),
             file.getBlockSizeByte(), file.getCreationTimeMs(), file.getCreationTimeMs(),
-            new FsPermission(file.getPermission()),file.getOwner(), file.getGroup(),
-            new Path(mTachyonHeader + tPath));
+            new FsPermission(file.getPermission()), file.getOwner(), file.getGroup(), new Path(
+                mTachyonHeader + tPath));
     return ret;
   }
 
   /**
-   * Set owner of a path (i.e. a file or a directory).
-   * The parameters username and groupname cannot both be null.
+   * Set owner of a path (i.e. a file or a directory). The parameters username and groupname cannot
+   * both be null.
+   * 
    * @param p The path
    * @param username If it is null, the original username remains unchanged.
    * @param groupname If it is null, the original groupname remains unchanged.
@@ -333,26 +334,30 @@ abstract class AbstractTFS extends FileSystem {
     LOG.info("chown owner:" + username + " group:" + groupname + " on " + p);
     TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(p));
     fromHdfsToTachyon(tPath);
-    mTFS.setOwner(tPath, username, groupname, true);
+    mTFS.setOwner(tPath, username, groupname, false);
   }
 
   /**
    * Set permission of a path.
-   * @param p
+   * 
+   * @param p The path
    * @param permission
    */
   public void setPermission(Path p, FsPermission permission) throws IOException {
-
+    LOG.info("chmod perm:" + permission.toString() + " on " + p);
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(p));
+    fromHdfsToTachyon(tPath);
+    mTFS.setPermission(tPath, permission.toShort(), false);
   }
 
   /**
    * Get the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means to
    * make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
-   *
+   * 
    * @Override on this method.
-   *
+   * 
    * @return schema hadoop should map to.
-   *
+   * 
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
    */
@@ -360,7 +365,7 @@ abstract class AbstractTFS extends FileSystem {
 
   /**
    * Returns an object implementing the Tachyon-specific client API.
-   *
+   * 
    * @return null if initialize() hasn't been called.
    */
   public TachyonFS getTachyonFS() {
@@ -408,7 +413,7 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * Determines if zookeeper should be used for the FileSystem. This method should only be used for
    * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
-   *
+   * 
    * @return true if zookeeper should be used
    */
   protected abstract boolean isZookeeperMode();
@@ -426,7 +431,7 @@ abstract class AbstractTFS extends FileSystem {
 
     List<ClientFileInfo> files = mTFS.listStatus(tPath);
     FileStatus[] ret = new FileStatus[files.size()];
-    for (int k = 0; k < files.size(); k ++) {
+    for (int k = 0; k < files.size(); k++) {
       ClientFileInfo info = files.get(k);
       // TODO replicate 3 with the number of disk replications.
       ret[k] =
@@ -452,8 +457,8 @@ abstract class AbstractTFS extends FileSystem {
     fromHdfsToTachyon(path);
     int fileId = mTFS.getFileId(path);
 
-    return new FSDataInputStream(new HdfsFileInputStream(mTFS, fileId,
-        Utils.getHDFSPath(path, mUnderFSAddress), getConf(), bufferSize, mTachyonConf));
+    return new FSDataInputStream(new HdfsFileInputStream(mTFS, fileId, Utils.getHDFSPath(path,
+        mUnderFSAddress), getConf(), bufferSize, mTachyonConf));
   }
 
   @Override
@@ -481,7 +486,7 @@ abstract class AbstractTFS extends FileSystem {
    * When this check is not done, {@link #fromHdfsToTachyon(TachyonURI)} is called, which loads the
    * default filesystem (hadoop's). When there is no schema, then it may default to tachyon which
    * causes a recursive loop.
-   *
+   * 
    * @see <a href="https://tachyon.atlassian.net/browse/TACHYON-54">TACHYON-54</a>
    */
   @Deprecated

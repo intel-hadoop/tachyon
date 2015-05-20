@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -38,7 +38,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 public class InodeFile extends Inode {
   /**
    * Create a new InodeFile from an image JSON element
-   *
+   * 
    * @param ele the image JSON element
    * @return the created inode file.
    * @throws IOException
@@ -59,8 +59,9 @@ public class InodeFile extends Inode {
     final String owner = ele.getString("owner");
     final String group = ele.getString("group");
     final short permission = ele.getShort("permission");
-    InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs,
-        new Acl.Builder().build(owner, group, permission));
+    InodeFile inode =
+        new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs,
+            AclUtil.get(owner, group, permission));
     try {
       inode.setLength(length);
     } catch (Exception e) {
@@ -87,18 +88,18 @@ public class InodeFile extends Inode {
 
   /**
    * Create a new InodeFile.
-   *
+   * 
    * @param name The name of the file
    * @param id The id of the file
    * @param parentId The id of the parent of the file
    * @param blockSizeByte The block size of the file, in bytes
    * @param creationTimeMs The creation time of the file, in milliseconds
    */
-  public InodeFile(String name, int id, int parentId, long blockSizeByte,long creationTimeMs) {
+  public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs) {
     this(name, id, parentId, blockSizeByte, creationTimeMs, AclUtil.getDefault(false));
   }
 
-  public InodeFile(String name, int id, int parentId, long blockSizeByte,long creationTimeMs,
+  public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs,
       Acl acl) {
     super(name, id, parentId, false, creationTimeMs, acl);
     mBlockSizeByte = blockSizeByte;
@@ -108,7 +109,7 @@ public class InodeFile extends Inode {
   /**
    * Add a block to the file.It will check the legality. Cannot add the block if the file is
    * complete or the block's information doesn't match the file's information.
-   *
+   * 
    * @param blockInfo The block to be added
    * @throws BlockInfoException
    */
@@ -139,7 +140,7 @@ public class InodeFile extends Inode {
 
   /**
    * Add a location information of the file. A worker caches a block of the file.
-   *
+   * 
    * @param blockIndex The index of the block in the file
    * @param workerId The id of the worker
    * @param workerAddress The net address of the worker
@@ -181,7 +182,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get the id of the specified block by the offset of the file.
-   *
+   * 
    * @param offset The offset of the file
    * @return the id of the specified block
    */
@@ -192,12 +193,12 @@ public class InodeFile extends Inode {
 
   /**
    * Get all the blocks of the file. It will return a duplication.
-   *
+   * 
    * @return a duplication of all the blocks' ids of the file
    */
   public synchronized List<Long> getBlockIds() {
     List<Long> ret = new ArrayList<Long>(mBlocks.size());
-    for (int k = 0; k < mBlocks.size(); k ++) {
+    for (int k = 0; k < mBlocks.size(); k++) {
       ret.add(mBlocks.get(k).mBlockId);
     }
     return ret;
@@ -206,7 +207,7 @@ public class InodeFile extends Inode {
   /**
    * The pairs of the blocks and workers. Each pair contains a block's id and the id of the worker
    * who caches it.
-   *
+   * 
    * @return all the pairs of the blocks and the workers
    */
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
@@ -219,7 +220,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get the block list of the file, which is not a duplication.
-   *
+   * 
    * @return the block list of the file
    */
   public List<BlockInfo> getBlockList() {
@@ -228,7 +229,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get the locations of the specified block.
-   *
+   * 
    * @param blockIndex The index of the block in the file
    * @return a list of the worker's net address who caches the block
    * @throws BlockInfoException
@@ -244,7 +245,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get the block size of the file
-   *
+   * 
    * @return the block size in bytes
    */
   public long getBlockSizeByte() {
@@ -253,7 +254,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get the path of the file in under file system
-   *
+   * 
    * @return the path of the file in under file system
    */
   public synchronized String getUfsPath() {
@@ -262,7 +263,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get a ClientBlockInfo of the specified block.
-   *
+   * 
    * @param blockIndex The index of the block in the file
    * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance
    * @return the generated ClientBlockInfo
@@ -279,7 +280,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get file's all blocks' ClientBlockInfo information.
-   *
+   * 
    * @return all blocks ClientBlockInfo
    */
   public synchronized List<ClientBlockInfo> getClientBlockInfos(TachyonConf tachyonConf) {
@@ -292,7 +293,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get the dependency id of the file
-   *
+   * 
    * @return the dependency id of the file
    */
   public synchronized int getDependencyId() {
@@ -301,7 +302,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get the percentage that how many of the file is in memory.
-   *
+   * 
    * @return the in memory percentage
    */
   private synchronized int getInMemoryPercentage() {
@@ -320,7 +321,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get the length of the file
-   *
+   * 
    * @return the length of the file
    */
   public synchronized long getLength() {
@@ -329,7 +330,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get the id of a new block of the file. Also the id of the next block added into the file.
-   *
+   * 
    * @return the id of a new block of the file
    */
   public synchronized long getNewBlockId() {
@@ -338,7 +339,7 @@ public class InodeFile extends Inode {
 
   /**
    * Get the number of the blocks of the file
-   *
+   * 
    * @return the number of the blocks
    */
   public synchronized int getNumberOfBlocks() {
@@ -348,7 +349,7 @@ public class InodeFile extends Inode {
   /**
    * Return whether the file has checkpointed or not. Note that the file has checkpointed only if
    * the under file system path is not empty.
-   *
+   * 
    * @return true if the file has checkpointed, false otherwise
    */
   public synchronized boolean hasCheckpointed() {
@@ -357,7 +358,7 @@ public class InodeFile extends Inode {
 
   /**
    * Return whether the file is cacheable or not.
-   *
+   * 
    * @return true if the file is cacheable, false otherwise
    */
   public synchronized boolean isCache() {
@@ -366,7 +367,7 @@ public class InodeFile extends Inode {
 
   /**
    * Return whether the file is complete or not.
-   *
+   * 
    * @return true if the file is complete, false otherwise
    */
   public synchronized boolean isComplete() {
@@ -376,7 +377,7 @@ public class InodeFile extends Inode {
   /**
    * Return whether the file is fully in memory or not. The file is fully in memory only if all the
    * blocks of the file are in memory, in other words, the in memory percentage is 100.
-   *
+   * 
    * @return true if the file is fully in memory, false otherwise
    */
   public synchronized boolean isFullyInMemory() {
@@ -385,7 +386,7 @@ public class InodeFile extends Inode {
 
   /**
    * Remove a location of a block.
-   *
+   * 
    * @param blockIndex The index of the block in the file
    * @param workerId The id of the removed location worker
    * @throws BlockInfoException
@@ -399,7 +400,7 @@ public class InodeFile extends Inode {
 
   /**
    * Set whether the file is cacheable or not.
-   *
+   * 
    * @param cache If true, the file is cacheable
    */
   public synchronized void setCache(boolean cache) {
@@ -409,7 +410,7 @@ public class InodeFile extends Inode {
 
   /**
    * Set the path of the file in under file system.
-   *
+   * 
    * @param ufsPath The new path of the file in under file system
    */
   public synchronized void setUfsPath(String ufsPath) {
@@ -425,7 +426,7 @@ public class InodeFile extends Inode {
 
   /**
    * Set the complete flag of the file
-   *
+   * 
    * @param complete If true, the file is complete
    */
   public synchronized void setComplete(boolean complete) {
@@ -434,7 +435,7 @@ public class InodeFile extends Inode {
 
   /**
    * Set the dependency id of the file
-   *
+   * 
    * @param dependencyId The new dependency id of the file
    */
   public synchronized void setDependencyId(int dependencyId) {
@@ -444,7 +445,7 @@ public class InodeFile extends Inode {
   /**
    * Set the length of the file. Cannot set the length if the file is complete or the length is
    * negative.
-   *
+   * 
    * @param length The new length of the file, cannot be negative
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
@@ -490,8 +491,7 @@ public class InodeFile extends Inode {
             .withParameter("pin", isPinned()).withParameter("cache", isCache())
             .withParameter("ufsPath", getUfsPath()).withParameter("depId", getDependencyId())
             .withParameter("lastModificationTimeMs", getLastModificationTimeMs())
-            .withParameter("owner", mAcl.getUserName())
-            .withParameter("group", mAcl.getGroupName())
+            .withParameter("owner", mAcl.getUserName()).withParameter("group", mAcl.getGroupName())
             .withParameter("permission", mAcl.toShort());
 
     writeElement(objWriter, dos, ele);
