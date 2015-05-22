@@ -85,7 +85,7 @@ public final class EditLog {
       while (ufs.exists(curEditLogFile)) {
         LOG.info("Loading Edit Log " + curEditLogFile);
         loadSingleLog(info, curEditLogFile);
-        completedLogs++;
+        completedLogs ++;
         curEditLogFile = CommonUtils.concat(completedPath, completedLogs + ".editLog");
       }
     }
@@ -294,7 +294,7 @@ public final class EditLog {
         while (mUfs.exists(toRename)) {
           mUfs.rename(toRename, dstPath);
           LOG.info("Rename " + toRename + " to " + dstPath);
-          currentLogFileNum++;
+          currentLogFileNum ++;
           sBackUpLogStartNum++;
           toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
           dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
@@ -303,7 +303,7 @@ public final class EditLog {
           dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
           mUfs.rename(path, dstPath);
           LOG.info("Rename " + path + " to " + dstPath);
-          currentLogFileNum++;
+          currentLogFileNum ++;
         }
         sBackUpLogStartNum = -1;
       }
@@ -528,7 +528,7 @@ public final class EditLog {
     UnderFileSystem ufs = UnderFileSystem.get(path, conf);
     String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     try {
-      for (int i = 0; i < upTo; i++) {
+      for (int i = 0; i < upTo; i ++) {
         String toDelete = CommonUtils.concat(folder, i + ".editLog");
         LOG.info("Deleting editlog " + toDelete);
         ufs.delete(toDelete, true);
@@ -601,13 +601,14 @@ public final class EditLog {
 
     _closeActiveStream();
     LOG.info("Edit log max size of " + mMaxLogSize + " bytes reached, rotating edit log");
-    String pathPrefix = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
+    String pathPrefix =
+        path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     LOG.info("path: " + path + " prefix: " + pathPrefix);
     try {
       if (!mUfs.exists(pathPrefix)) {
         mUfs.mkdirs(pathPrefix, true);
       }
-      String newPath = CommonUtils.concat(pathPrefix, (mCurrentLogFileNum++) + ".editLog");
+      String newPath = CommonUtils.concat(pathPrefix, (mCurrentLogFileNum ++) + ".editLog");
       mUfs.rename(path, newPath);
       LOG.info("Renamed " + path + " to " + newPath);
       mOs = mUfs.create(path);
@@ -629,9 +630,9 @@ public final class EditLog {
 
   /**
    * Changes backup log start number for testing purposes.
-   * 
+   *
    * Note that we must set it back to -1 when test case ended.
-   * 
+   *
    * @param num
    */
   static void setBackUpLogStartNum(int num) {

@@ -42,12 +42,12 @@ import tachyon.worker.netty.ChannelType;
 
 /**
  * Configuration for Tachyon. Used to set various Tachyon parameters as key-value pairs.
- * 
+ *
  * This class will contains all the runtime configuration properties.
- * 
+ *
  * Clients of this class can create a TachyonConf object with <code>new TachyonConf()`</code>, which
  * will load values from any Java system properties set as well.
- * 
+ *
  * The class only support creation using `new TachyonConf(properties)` which will override default
  * values.
  */
@@ -75,7 +75,7 @@ public class TachyonConf {
 
   /**
    * Copy constructor to merge the properties of the incoming <code>TachyonConf</code>.
-   * 
+   *
    * @param tachyonConf The source {@link tachyon.conf.TachyonConf} to be merged.
    */
   public TachyonConf(TachyonConf tachyonConf) {
@@ -84,7 +84,7 @@ public class TachyonConf {
 
   /**
    * Overrides default properties.
-   * 
+   *
    * @param props override {@link Properties}
    */
   public TachyonConf(Map<String, String> props) {
@@ -95,7 +95,7 @@ public class TachyonConf {
 
   /**
    * Overrides default properties.
-   * 
+   *
    * @param props override {@link Properties}
    */
   public TachyonConf(Properties props) {
@@ -106,7 +106,7 @@ public class TachyonConf {
 
   /**
    * Default constructor.
-   * 
+   *
    * Most clients will call this constructor to allow default loading of properties to happen.
    * 
    */
@@ -116,9 +116,9 @@ public class TachyonConf {
 
   /**
    * Test constructor for TachyonConfTest class.
-   * 
+   *
    * Most clients will call this constructor to allow default loading of properties to happen.
-   * 
+   *
    */
   TachyonConf(boolean includeSystemProperties) {
     loadDefault(includeSystemProperties);
@@ -146,18 +146,20 @@ public class TachyonConf {
   }
 
   /**
-   * Here is the order of importance of resource where we load the properties: -) System properties
-   * if desired -) Site specific properties via tachyon-site.properties file -) Default properties
-   * via tachyon-default.properties file so we will load it in reverse order.
-   */
+   * Here is the order of importance of resource where we load the properties:
+   *   -) System properties if desired
+   *   -) Site specific properties via tachyon-site.properties file
+   *   -) Default properties via tachyon-default.properties file
+   * so we will load it in reverse order.
+  */
   protected void loadDefault(boolean includeSystemProperties) {
     // Load default
     Properties defaultProps = new Properties();
 
     // Override runtime default
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
-    defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.defaultType()
-        .toString());
+    defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
+        ChannelType.defaultType().toString());
     defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
@@ -179,8 +181,8 @@ public class TachyonConf {
     String masterHostname = defaultProps.getProperty(Constants.MASTER_HOSTNAME);
     String masterPort = defaultProps.getProperty(Constants.MASTER_PORT);
     boolean useZk = Boolean.parseBoolean(defaultProps.getProperty(Constants.USE_ZOOKEEPER));
-    String masterAddress =
-        (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
+    String masterAddress = (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":"
+        + masterPort;
     defaultProps.setProperty(Constants.MASTER_ADDRESS, masterAddress);
 
     // Load site specific properties file
@@ -216,7 +218,7 @@ public class TachyonConf {
 
   /**
    * Merge configuration properties with the other one. New one wins for duplicate
-   * 
+   *
    * @param alternateConf The source <code>TachyonConf</code> to be merged.
    */
   public void merge(TachyonConf alternateConf) {
@@ -352,11 +354,11 @@ public class TachyonConf {
   /**
    * Get the value of the <code>name</code> property as a <code>Class</code> implementing the
    * interface specified by <code>xface</code>.
-   * 
+   *
    * If no such property is specified, then <code>defaultValue</code> is returned.
-   * 
+   *
    * An exception is thrown if the returned class does not implement the named interface.
-   * 
+   *
    * @param name the class name.
    * @param defaultValue default value.
    * @param xface the interface implemented by the named class.
@@ -394,7 +396,7 @@ public class TachyonConf {
 
   /**
    * Lookup key names to handle ${key} stuff. Set as package private for testing.
-   * 
+   *
    * @param base string to look for.
    * @return returns the key name with the ${key} substituted
    */
@@ -404,7 +406,7 @@ public class TachyonConf {
 
   /**
    * Actual recursive lookup replacement.
-   * 
+   *
    * @param base the String to look for.
    * @param found {@link Map} of String that already seen in this path.
    * @return resolved String value.

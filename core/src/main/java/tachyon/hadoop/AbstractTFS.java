@@ -168,7 +168,7 @@ abstract class AbstractTFS extends FileSystem {
     } else {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       int fileId;
-      WriteType type = getWriteType();
+      WriteType type =  getWriteType();
       if (mTFS.exist(path)) {
         fileId = mTFS.getFileId(path);
         type = WriteType.MUST_CACHE;
@@ -240,8 +240,8 @@ abstract class AbstractTFS extends FileSystem {
       FileSystem fs = hdfsPath.getFileSystem(conf);
       if (fs.exists(hdfsPath)) {
         TachyonURI ufsUri = new TachyonURI(mUnderFSAddress);
-        TachyonURI ufsAddrPath =
-            new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(), path.getPath());
+        TachyonURI ufsAddrPath = new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(),
+            path.getPath());
         // Set the path as the TFS root path.
         UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null), mTachyonConf);
       }
@@ -271,7 +271,7 @@ abstract class AbstractTFS extends FileSystem {
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
     List<ClientBlockInfo> blocks = mTFS.getFileBlocks(fileId);
-    for (int k = 0; k < blocks.size(); k++) {
+    for (int k = 0; k < blocks.size(); k ++) {
       ClientBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
       long end = offset + info.getLength();
@@ -288,7 +288,7 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     BlockLocation[] ret = new BlockLocation[blockLocations.size()];
-    for (int k = 0; k < blockLocations.size(); k++) {
+    for (int k = 0; k < blockLocations.size(); k ++) {
       ret[k] = blockLocations.get(k);
     }
     return ret;
@@ -431,13 +431,14 @@ abstract class AbstractTFS extends FileSystem {
 
     List<ClientFileInfo> files = mTFS.listStatus(tPath);
     FileStatus[] ret = new FileStatus[files.size()];
-    for (int k = 0; k < files.size(); k++) {
+    for (int k = 0; k < files.size(); k ++) {
       ClientFileInfo info = files.get(k);
       // TODO replicate 3 with the number of disk replications.
       ret[k] =
           new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeByte(),
-              info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null, new Path(
-                  mTachyonHeader + info.getPath()));
+              info.getCreationTimeMs(), info.getCreationTimeMs(),
+              new FsPermission((short)info.getPermission()), info.getOwner(),
+              info.getGroup(), new Path(mTachyonHeader + info.getPath()));
     }
     return ret;
   }
@@ -486,7 +487,7 @@ abstract class AbstractTFS extends FileSystem {
    * When this check is not done, {@link #fromHdfsToTachyon(TachyonURI)} is called, which loads the
    * default filesystem (hadoop's). When there is no schema, then it may default to tachyon which
    * causes a recursive loop.
-   * 
+   *
    * @see <a href="https://tachyon.atlassian.net/browse/TACHYON-54">TACHYON-54</a>
    */
   @Deprecated

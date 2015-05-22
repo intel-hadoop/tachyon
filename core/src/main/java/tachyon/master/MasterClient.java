@@ -193,13 +193,14 @@ public final class MasterClient implements Closeable {
         HeartbeatExecutor heartBeater = new MasterClientHeartbeatExecutor(this);
 
         String threadName = "master-heartbeat-" + mMasterAddress;
-        int interval =
-            mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+        int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
+            Constants.SECOND_MS);
         mHeartbeat =
-            mExecutorService.submit(new HeartbeatThread(threadName, heartBeater, interval / 2));
+            mExecutorService.submit(new HeartbeatThread(threadName, heartBeater,
+                interval / 2));
       } catch (TTransportException e) {
         lastException = e;
-        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress
+        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress 
             + " : " + e.getMessage());
         if (mHeartbeat != null) {
           mHeartbeat.cancel(true);
@@ -793,8 +794,8 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
-  public synchronized void worker_cacheBlock(long workerId, long usedBytesOnTier,
-      long storageDirId, long blockId, long length) throws IOException, FileDoesNotExistException,
+  public synchronized void worker_cacheBlock(long workerId, long usedBytesOnTier, long storageDirId,
+      long blockId, long length) throws IOException, FileDoesNotExistException,
       BlockInfoException {
     while (!mIsShutdown) {
       connect();
@@ -841,7 +842,8 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized Command worker_heartbeat(long workerId, List<Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) throws IOException {
+      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
+      throws IOException {
     while (!mIsShutdown) {
       connect();
 
@@ -875,9 +877,8 @@ public final class MasterClient implements Closeable {
       connect();
 
       try {
-        long ret =
-            mClient.worker_register(workerNetAddress, totalBytesOnTiers, usedBytesOnTiers,
-                currentBlockList);
+        long ret = mClient.worker_register(workerNetAddress, totalBytesOnTiers, usedBytesOnTiers,
+            currentBlockList);
         LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
             + " , got WorkerId " + ret);
         return ret;

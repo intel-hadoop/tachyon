@@ -32,7 +32,7 @@ interface TachyonFSCore extends Closeable {
    * @param path The path of the file
    * @param ufsPath The path of the file in the under file system. If this is empty, the file does
    *        not exist in the under file system yet.
-   * @param blockSizeByte The size of the block in bytes. It is -1 if ufsPath is non-empty.
+   * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique.
    */
@@ -44,7 +44,7 @@ interface TachyonFSCore extends Closeable {
    * 
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
-   * @param path The path of the file / folder. It could be empty if id is not -1.
+   * @param path The path of the file / folder. It could be empty iff id is not -1.
    * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
    *        or not
    * @return true if deletes successfully, false otherwise.
@@ -56,7 +56,7 @@ interface TachyonFSCore extends Closeable {
    * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
    * 
    * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid if fileId is -1.
+   * @param path the path of the file or folder. valid iff fileId is -1.
    * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
    * @throws IOException
    */
@@ -90,8 +90,8 @@ interface TachyonFSCore extends Closeable {
    * 
    * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the srcPath parameter.
-   * @param srcPath The path of the source file / folder. It could be empty if id is not -1.
-   * @param dstPath The path of the destination file / folder. It could be empty if id is not -1.
+   * @param srcPath The path of the source file / folder. It could be empty iff id is not -1.
+   * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
    * @return true if renames successfully, false otherwise.
    * @throws IOException
    */

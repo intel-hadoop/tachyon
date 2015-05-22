@@ -59,7 +59,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Create a TachyonFS handler.
-   * 
+   *
    * @param tachyonPath a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
    * @return the corresponding TachyonFS handler
@@ -105,7 +105,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Create a TachyonFS handler.
-   * 
+   *
    * @param masterHost master host details
    * @param masterPort port master listens on
    * @param zkMode use zookeeper
@@ -123,9 +123,9 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Create a TachyonFS handler.
-   * 
+   *
    * @param tachyonConf The TachyonConf instance.
-   * 
+   *
    * @return the corresponding TachyonFS handler
    * @throws IOException
    */
@@ -179,8 +179,8 @@ public class TachyonFS extends AbstractTachyonFS {
 
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mExecutorService, mTachyonConf));
-    mWorkerClient =
-        mCloser.register(new WorkerClient(mMasterClient, mExecutorService, mTachyonConf));
+    mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService,
+        mTachyonConf));
 
     mUserFailedSpaceRequestLimits =
         mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 0);
@@ -833,7 +833,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Frees in memory file or folder
-   * 
+   *
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
    * @param path The path of the file / folder. It could be empty iff id is not -1.
@@ -951,17 +951,18 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the size bytes that allocated to the block, -1 if no local worker exists
    * @throws IOException
    */
-  public synchronized long requestSpace(long blockId, long requestSpaceBytes) throws IOException {
+  public synchronized long requestSpace(long blockId, long requestSpaceBytes)
+      throws IOException {
 
     if (!hasLocalWorker()) {
       return -1;
     }
 
-    long userQuotaUnitBytes =
-        mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB);
+    long userQuotaUnitBytes = mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES,
+        8 * Constants.MB);
 
     long toRequestSpaceBytes = Math.max(requestSpaceBytes, userQuotaUnitBytes);
-    for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt++) {
+    for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
       if (mWorkerClient.requestSpace(blockId, toRequestSpaceBytes)) {
         return toRequestSpaceBytes;
       }

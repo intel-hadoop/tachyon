@@ -206,7 +206,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     if (getNumberOfBlocks() > 0) {
       List<NetAddress> locations = getClientBlockInfo(0).getLocations();
       if (locations != null) {
-        for (int k = 0; k < locations.size(); k++) {
+        for (int k = 0; k < locations.size(); k ++) {
           ret.add(locations.get(k).mHost);
         }
       }
@@ -484,9 +484,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {
     // We call into the remote block in stream class to read a remote byte buffer
-    ByteBuffer buf =
-        RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0, blockInfo.length,
-            mTachyonConf);
+    ByteBuffer buf = RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS,
+        blockInfo, 0, blockInfo.length,mTachyonConf);
     return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
   }
 
@@ -498,7 +497,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     boolean succeed = true;
-    for (int k = 0; k < numberOfBlocks; k++) {
+    for (int k = 0; k < numberOfBlocks; k ++) {
       succeed &= recache(k);
     }
 
@@ -507,7 +506,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Re-cache the block into memory
-   * 
+   *
    * @param blockIndex The block index of the current file.
    * @return true if succeed, false otherwise
    * @throws IOException

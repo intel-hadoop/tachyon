@@ -44,7 +44,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Create a new InodeFile from a JsonParser and an image Json element.
-   * 
+   *
    * @param parser the JsonParser to get the next element
    * @param ele the current InodeFolder's Json image element.
    * @return the constructed InodeFolder.
@@ -63,7 +63,7 @@ public class InodeFolder extends Inode {
     final short permission = ele.getShort("permission");
     int numberOfChildren = childrenIds.size();
     Inode[] children = new Inode[numberOfChildren];
-    for (int k = 0; k < numberOfChildren; k++) {
+    for (int k = 0; k < numberOfChildren; k ++) {
       try {
         ele = parser.readValueAs(ImageElement.class);
         LOG.debug("Read Element: {}", ele);
@@ -98,7 +98,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Create a new InodeFolder.
-   * 
+   *
    * @param name The name of the folder
    * @param id The id of the folder
    * @param parentId The id of the parent of the folder
@@ -114,7 +114,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Adds the given inode to the set of children.
-   * 
+   *
    * @param child The inode to add
    */
   public synchronized void addChild(Inode child) {
@@ -124,7 +124,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Adds the given inodes to the set of children.
-   * 
+   *
    * @param children The inodes to add
    */
   public synchronized void addChildren(Inode[] children) {
@@ -135,7 +135,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Generates client file info for the folder.
-   * 
+   *
    * @param path The path of the folder in the filesystem
    * @return the generated ClientFileInfo
    */
@@ -166,7 +166,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Returns the child with the given id.
-   * 
+   *
    * @param fid The id of the child
    * @return the inode with the given id, or null if there is no child with that id
    */
@@ -176,7 +176,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Returns the child with the given name.
-   * 
+   *
    * @param name The name of the child
    * @return the inode with the given name, or null if there is no child with that name
    */
@@ -186,7 +186,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Returns the folder's children.
-   * 
+   *
    * @return an unmodifiable set of the children inodes.
    */
   public synchronized Set<Inode> getChildren() {
@@ -195,7 +195,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Returns the ids of the children.
-   * 
+   *
    * @return the ids of the children
    */
   public synchronized List<Integer> getChildrenIds() {
@@ -204,7 +204,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Returns the number of children the folder has.
-   * 
+   *
    * @return the number of children in the folder.
    */
   public synchronized int getNumberOfChildren() {
@@ -213,7 +213,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Removes the given inode from the folder.
-   * 
+   *
    * @param child The Inode to remove
    * @return true if the inode was removed, false otherwise.
    */
@@ -224,7 +224,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Removes the given child from the folder.
-   * 
+   *
    * @param name The name of the Inode to remove.
    * @return true if the inode was removed, false otherwise.
    */
@@ -245,7 +245,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Write an image of the folder.
-   * 
+   *
    * @param dos The output stream to write the folder to
    */
   @Override
