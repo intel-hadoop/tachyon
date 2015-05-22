@@ -221,6 +221,8 @@ public class UserGroup {
     try {
       Subject subject = new Subject();
 
+      // TODO: support Kerbores.
+      // TODO: create LoginContext based on security conf. Hard code "simple" here temporarily.
       LoginContext loginContext = newLoginContext("simple", subject,
           new TachyonJaasConfiguration());
       loginContext.login();

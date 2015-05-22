@@ -64,14 +64,11 @@ public class PlainSaslHelper {
     }
   }
 
-  public static TTransportFactory getPlainTransportFactory(String authType) throws LoginException {
+  public static TTransportFactory getPlainTransportFactory(String authType) {
     TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();
-    try {
-      saslFactory.addServerDefinition("PLAIN", authType, null, new HashMap<String, String>(),
-          new PlainServerCallbackHandler(authType));
-    } catch (AuthenticationException e) {
-      throw new LoginException("Error setting callback handler" + e);
-    }
+    saslFactory.addServerDefinition("PLAIN", authType, null, new HashMap<String, String>(),
+        new PlainServerCallbackHandler(authType));
+
     return saslFactory;
   }
 
@@ -79,7 +76,7 @@ public class PlainSaslHelper {
 
     private final AuthenticationProviderFactory.AuthenticationMethod mAuthMethod;
 
-    PlainServerCallbackHandler(String authMethodStr) throws AuthenticationException {
+    PlainServerCallbackHandler(String authMethodStr) {
       mAuthMethod = AuthenticationProviderFactory.AuthenticationMethod
           .getValidAuthenticationMethod(authMethodStr);
     }

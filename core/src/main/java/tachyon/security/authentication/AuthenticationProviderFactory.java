@@ -33,14 +33,14 @@ public class AuthenticationProviderFactory {
       return mAuthMethod;
     }
 
-    public static AuthenticationMethod getValidAuthenticationMethod(String mAuthMethodStr) throws
-        AuthenticationException {
+    public static AuthenticationMethod getValidAuthenticationMethod(String mAuthMethodStr) {
       for (AuthenticationMethod auth : AuthenticationMethod.values()) {
         if (mAuthMethodStr.equals(auth.getmAuthMethod())) {
           return auth;
         }
       }
-      throw new AuthenticationException("Not a valid authentication method: " + mAuthMethodStr);
+      throw new UnsupportedOperationException("Not a valid authentication method: "
+          + mAuthMethodStr);
     }
   }
 

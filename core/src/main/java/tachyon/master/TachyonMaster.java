@@ -40,7 +40,6 @@ import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemHdfs;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
-import tachyon.security.SecurityUtil;
 import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -153,7 +152,7 @@ public class TachyonMaster {
   private TServerSocket createTServerSocket(InetSocketAddress address) throws TTransportException {
     if (mTachyonConf.getBoolean(Constants.TACHYON_SECURITY_USE_SSL, false)) {
       // TODO: ssl
-      return null;
+      throw new UnsupportedOperationException("SSL is not supported now");
     } else {
       return AuthenticationFactory.createTServerSocket(address);
     }
@@ -252,24 +251,20 @@ public class TachyonMaster {
   }
 
   private TServer createMasterServiceServer() {
-    try {
-      AuthenticationFactory factory = new AuthenticationFactory(mTachyonConf);
-      // processor
-      mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
-      TProcessorFactory processorFactory = factory.getAuthProcFactory(mMasterServiceHandler);
+    AuthenticationFactory factory = new AuthenticationFactory(mTachyonConf);
+    // processor
+    mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
+    TProcessorFactory processorFactory = factory.getAuthProcFactory(mMasterServiceHandler);
 
-      // transport
-      TTransportFactory tTransportFactory = factory.getAuthTransFactory();
+    // transport
+    TTransportFactory tTransportFactory = factory.getAuthTransFactory();
 
-      // create server
-      return new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
-          .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
-          .processorFactory(processorFactory).transportFactory(tTransportFactory)
-          .protocolFactory(new TBinaryProtocol.Factory(true, true)));
-    } catch (Exception e) {
-      // TODO: handle it
-      throw new RuntimeException(e);
-    }
+    // create server
+    return new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
+        .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
+        .processorFactory(processorFactory).transportFactory(tTransportFactory)
+        .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+
   }
 
   public void start() {

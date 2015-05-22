@@ -20,6 +20,8 @@ import java.security.Principal;
 public class User implements Principal {
   private String mName;
 
+  // TODO: add attributes and methods for supporting Kerbores
+
   public User(String mName) {
     this.mName = mName;
   }

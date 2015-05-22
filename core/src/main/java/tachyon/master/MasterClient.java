@@ -51,7 +51,6 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
-import tachyon.security.SecurityUtil;
 import tachyon.security.UserGroup;
 import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.security.authentication.PlainSaslHelper;

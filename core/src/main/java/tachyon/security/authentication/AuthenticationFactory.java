@@ -78,18 +78,18 @@ public class AuthenticationFactory {
     }
   }
 
-  public TTransportFactory getAuthTransFactory() throws LoginException {
+  public TTransportFactory getAuthTransFactory() {
     TTransportFactory tTransportFactory;
 
     if (mAuthTypeStr.equalsIgnoreCase(AuthTypes.KERBEROS.getAuthName())) {
       //TODO: kerbores
-      throw new LoginException("Unsupported authentication type: " + mAuthTypeStr);
+      throw new UnsupportedOperationException("Unsupported authentication type: " + mAuthTypeStr);
     } else if (mAuthTypeStr.equalsIgnoreCase(AuthTypes.NOSASL.getAuthName())) {
       tTransportFactory =  new TFramedTransport.Factory();
     } else if (mAuthTypeStr.equalsIgnoreCase(AuthTypes.SIMPLE.getAuthName())) {
       tTransportFactory = PlainSaslHelper.getPlainTransportFactory(mAuthTypeStr);
     } else {
-      throw new LoginException("Unsupported authentication type: " + mAuthTypeStr);
+      throw new UnsupportedOperationException("Unsupported authentication type: " + mAuthTypeStr);
     }
     return tTransportFactory;
   }
