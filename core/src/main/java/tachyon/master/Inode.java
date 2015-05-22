@@ -23,6 +23,14 @@ import tachyon.thrift.ClientFileInfo;
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode extends ImageWriter implements Comparable<Inode> {
+  /**
+   * InodeType, used to present file or folder
+   */
+  public enum InodeType {
+    FILE,
+    FOLDER;
+  }
+  
   private final long mCreationTimeMs;
   protected final boolean mIsFolder;
 

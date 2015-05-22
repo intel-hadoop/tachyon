@@ -170,7 +170,7 @@ public class TachyonMaster {
 
   /**
    * Gets the underlying {@link tachyon.conf.TachyonConf} instance for the Worker.
-   * 
+   *
    * @return TachyonConf of the Master
    */
   public TachyonConf getTachyonConf() {

@@ -45,8 +45,8 @@ import tachyon.worker.netty.ChannelType;
  *
  * This class will contains all the runtime configuration properties.
  *
- * Clients of this class can create a TachyonConf object with <code>new TachyonConf()`</code>, which
- * will load values from any Java system properties set as well.
+ * Clients of this class can create a TachyonConf object with <code>new TachyonConf()`</code>,
+ * which will load values from any Java system properties set as well.
  *
  * The class only support creation using `new TachyonConf(properties)` which will override default
  * values.
@@ -106,7 +106,7 @@ public class TachyonConf {
 
   /**
    * Default constructor.
-   *
+   * 
    * Most clients will call this constructor to allow default loading of properties to happen.
    * 
    */

@@ -224,7 +224,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     } catch (AccessControlException ace) {
       request.setAttribute("fatalError", "Error: Access denied " + ace.getLocalizedMessage());
-      getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     }
 

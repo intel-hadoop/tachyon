@@ -217,7 +217,7 @@ public class InodeFolderTest {
 
   @Test
   public void setAclTest() {
-    Acl acl = AclUtil.get("test1", "test1", (short)0755);
+    Acl acl = AclUtil.getAcl("test1", "test1", (short)0755);
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis(), acl);
     Assert.assertEquals(inodeFile.getAcl().getUserName(), "test1");
     Assert.assertEquals(inodeFile.getAcl().getGroupName(), "test1");

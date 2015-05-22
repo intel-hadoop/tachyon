@@ -85,7 +85,7 @@ public class InodeFolder extends Inode {
       }
     }
     InodeFolder folder =
-        new InodeFolder(fileName, fileId, parentId, creationTimeMs, AclUtil.get(owner, group,
+        new InodeFolder(fileName, fileId, parentId, creationTimeMs, AclUtil.getAcl(owner, group,
             permission));
     folder.setPinned(isPinned);
     folder.addChildren(children);
@@ -105,7 +105,7 @@ public class InodeFolder extends Inode {
    * @param creationTimeMs The creation time of the folder, in milliseconds
    */
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
-    this(name, id, parentId, creationTimeMs, AclUtil.getDefault(true));
+    this(name, id, parentId, creationTimeMs, AclUtil.getAcl(InodeType.FOLDER));
   }
 
   public InodeFolder(String name, int id, int parentId, long creationTimeMs, Acl acl) {

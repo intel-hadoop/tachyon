@@ -139,7 +139,7 @@ public final class EditLog {
           case CREATE_FILE: {
             info._createFile(op.getBoolean("recursive"), new TachyonURI(op.getString("path")), op
                 .getBoolean("directory"), op.getLong("blockSizeByte"),
-                op.getLong("creationTimeMs"), AclUtil.get(op.getString("owner"),
+                op.getLong("creationTimeMs"), AclUtil.getAcl(op.getString("owner"),
                     op.getString("group"), op.getShort("permission")));
             break;
           }

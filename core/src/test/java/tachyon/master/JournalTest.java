@@ -33,6 +33,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
+import tachyon.master.Inode.InodeType;
 import tachyon.master.permission.Acl;
 import tachyon.master.permission.AclUtil;
 import tachyon.thrift.AccessControlException;
@@ -471,7 +472,7 @@ public class JournalTest {
     log.setMaxLogSize(100);
     for (int i = 0; i < 124; i ++) {
       log.createFile(false, new TachyonURI("/sth" + i), false, Constants.DEFAULT_BLOCK_SIZE_BYTE,
-          System.currentTimeMillis(), AclUtil.getDefault(false));
+          System.currentTimeMillis(), AclUtil.getAcl(InodeType.FILE));
       log.flush();
     }
     log.close();

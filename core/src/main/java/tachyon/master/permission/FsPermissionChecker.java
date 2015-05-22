@@ -38,15 +38,15 @@ public class FsPermissionChecker implements AccessControlEnforcer {
   private final String mUser;
   private final List<String> mGroups;
   private final boolean mIsSuperUser;
-  private final UserGroup mCallUgi;
+  private final UserGroup mCaller;
 
   public FsPermissionChecker(String fsOwner, String supergroup,
-      UserGroup ugi) {
+      UserGroup caller) {
     this.mFsOwner = fsOwner;
     this.mSupergroup = supergroup;
-    this.mCallUgi = ugi;
-    this.mUser = ugi.getShortUserName();
-    this.mGroups = ugi.getGroupNames();
+    this.mCaller = caller;
+    this.mUser = caller.getShortUserName();
+    this.mGroups = caller.getGroupNames();
     this.mIsSuperUser = fsOwner.equals(mUser) || mGroups.contains(supergroup);
   }
 
@@ -103,7 +103,7 @@ public class FsPermissionChecker implements AccessControlEnforcer {
       return;
     }
 
-    checkPermission(mFsOwner, mSupergroup, mCallUgi, iip.getInodes(),
+    checkPermission(mFsOwner, mSupergroup, mCaller, iip.getInodes(),
         iip.getPathByNameArr(), iip.getFullPath(), iip.getInodes().length - 2,
         ancestorAccess, parentAccess, access, doCheckOwner);
   }
@@ -170,7 +170,7 @@ public class FsPermissionChecker implements AccessControlEnforcer {
 
   @Override
   public void checkPermission(String fsOwner, String supergroup,
-      UserGroup callUgi, Inode[] inodes, String[] pathByNameArr, String path,
+      UserGroup caller, Inode[] inodes, String[] pathByNameArr, String path,
       int ancestorIndex, AclPermission ancestorAccess, AclPermission parentAccess,
       AclPermission access, boolean doCheckOwner) throws AccessControlException {
     for (; ancestorIndex >= 0 && inodes[ancestorIndex] == null; ancestorIndex-- ) {

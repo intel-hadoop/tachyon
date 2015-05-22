@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.master.Inode.InodeType;
 import tachyon.master.permission.AclEntry.AclPermission;
 import tachyon.master.permission.AclEntry.AclType;
 import tachyon.security.UserGroup;
@@ -94,11 +95,11 @@ public class AclUtil {
   }
 
   /**
-   * Get the Acl information for InodeFile or InodeFolder
+   * Get the default Acl information for InodeFile or InodeFolder
    * @param isFolder
    * @return Acl
    */
-  public static Acl getDefault(boolean isFolder) {
+  public static Acl getAcl(InodeType type) {
     TachyonConf conf = new TachyonConf();
     UserGroup ugi = null;
     try {
@@ -106,8 +107,8 @@ public class AclUtil {
     } catch (IOException ioe) {
       throw new RuntimeException("can't get the ugi info", ioe);
     }
-    return get(ugi.getShortUserName(), conf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
-        Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT), conf, isFolder);
+    return getAcl(ugi.getShortUserName(), conf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
+        Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT), conf, type);
   }
 
   /**
@@ -118,9 +119,18 @@ public class AclUtil {
    * @param isFolder
    * @return Acl
    */
-  public static Acl get(String owner, String group, short umask, boolean isFolder) {
-    Acl acl = get(owner, group,
-        isFolder ? Constants.DEFAULT_DIR_PERMISSION : Constants.DEFAULT_FILE_PERMISSION);
+  public static Acl getAcl(String owner, String group, short umask, InodeType type) {
+    Acl acl = null;
+    switch (type) {
+      case FILE:
+        acl = getAcl(owner, group, Constants.DEFAULT_FILE_PERMISSION);
+        break;
+      case FOLDER:
+        acl = getAcl(owner, group, Constants.DEFAULT_DIR_PERMISSION);
+        break;
+      default:
+        throw new IllegalArgumentException("unknown inodeType :" + type.name());
+    }
     acl.umask(umask);
     return acl;
   }
@@ -133,11 +143,11 @@ public class AclUtil {
    * @param isFolder
    * @return Acl
    */
-  public static Acl get(String owner, String group, TachyonConf conf, boolean isFolder) {
-    return get(owner, group, getUMask(conf), isFolder);
+  public static Acl getAcl(String owner, String group, TachyonConf conf, InodeType type) {
+    return getAcl(owner, group, getUMask(conf), type);
   }
 
-  public static Acl get(String owner, String group, short perm) {
+  public static Acl getAcl(String owner, String group, short perm) {
     AclEntry userEntry = new AclEntry.Builder().setType(AclType.USER)
         .setName(owner)
         .setPermission(AclUtil.toUserPermission(perm))

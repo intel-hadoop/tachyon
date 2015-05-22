@@ -59,6 +59,7 @@ import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystem.SpaceType;
 import tachyon.conf.TachyonConf;
+import tachyon.master.Inode.InodeType;
 import tachyon.master.permission.Acl;
 import tachyon.master.permission.AclEntry.AclPermission;
 import tachyon.master.permission.AclUtil;
@@ -317,7 +318,7 @@ public class MasterInfo extends ImageWriter {
     mPermissionEnabled = tachyonConf.getBoolean(Constants.FS_PERMISSIONS_ENABLED_KEY,
         Constants.FS_PERMISSIONS_ENABLED_DEFAULT);
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1,System.currentTimeMillis(),
-        AclUtil.get(mFsOwner.getShortUserName(), mSupergroup, mTachyonConf, true));
+        AclUtil.getAcl(mFsOwner.getShortUserName(), mSupergroup, mTachyonConf, InodeType.FOLDER));
     mFileIdToInodes.put(mRoot.getId(), mRoot);
 
     mMasterAddress = address;
@@ -570,7 +571,8 @@ public class MasterInfo extends ImageWriter {
         Inode dir =
             new InodeFolder(pathNames[k], mInodeCounter.incrementAndGet(),
                 currentInodeFolder.getId(), creationTimeMs,
-                AclUtil.get(acl.getUserName(), acl.getGroupName(), mTachyonConf, true));
+                AclUtil.getAcl(acl.getUserName(), acl.getGroupName(), mTachyonConf,
+                InodeType.FOLDER));
         dir.setPinned(currentInodeFolder.isPinned());
         currentInodeFolder.addChild(dir);
         currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
@@ -1054,8 +1056,9 @@ public class MasterInfo extends ImageWriter {
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
       AccessControlException, TachyonException {
     long creationTimeMs = System.currentTimeMillis();
-    Acl acl = AclUtil.get(getRemoteUser().getShortUserName(),
-        mSupergroup, mTachyonConf, directory);
+    Acl acl = AclUtil.getAcl(getRemoteUser().getShortUserName(),
+        mSupergroup, mTachyonConf,
+        directory ? InodeType.FOLDER : InodeType.FILE);
     synchronized (mRootLock) {
       int ret = _createFile(recursive, path, directory, blockSizeByte, creationTimeMs, acl);
       mJournal.getEditLog().createFile(recursive, path, directory, blockSizeByte,

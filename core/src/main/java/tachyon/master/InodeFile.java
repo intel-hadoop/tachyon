@@ -61,7 +61,7 @@ public class InodeFile extends Inode {
     final short permission = ele.getShort("permission");
     InodeFile inode =
         new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs,
-            AclUtil.get(owner, group, permission));
+            AclUtil.getAcl(owner, group, permission));
     try {
       inode.setLength(length);
     } catch (Exception e) {
@@ -96,7 +96,7 @@ public class InodeFile extends Inode {
    * @param creationTimeMs The creation time of the file, in milliseconds
    */
   public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs) {
-    this(name, id, parentId, blockSizeByte, creationTimeMs, AclUtil.getDefault(false));
+    this(name, id, parentId, blockSizeByte, creationTimeMs, AclUtil.getAcl(InodeType.FILE));
   }
 
   public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs,
