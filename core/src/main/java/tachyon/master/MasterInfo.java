@@ -2176,11 +2176,6 @@ public class MasterInfo extends ImageWriter {
       FileAlreadyExistException, AccessControlException, InvalidPathException {
     long opTimeMs = System.currentTimeMillis();
     synchronized (mRootLock) {
-      Inode inode = getInode(dstPath);
-      if (inode != null) {
-        throw new FileAlreadyExistException("Failed to rename: "
-                                             + dstPath + " was already existed");
-      }
       boolean ret = _rename(fileId, dstPath, opTimeMs);
       mJournal.getEditLog().rename(fileId, dstPath, opTimeMs);
       mJournal.getEditLog().flush();

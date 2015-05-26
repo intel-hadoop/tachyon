@@ -32,7 +32,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientWorkerInfo;
-import tachyon.thrift.FileAlreadyExistException;
 import tachyon.util.CommonUtils;
 
 /**
@@ -336,11 +335,7 @@ public class TachyonFSTest {
   public void renameFileTest2() throws IOException {
     TachyonURI uniqUri = new TachyonURI(TestUtils.uniqPath());
     int fileId = sTfs.createFile(uniqUri);
-    try {
-      Assert.assertTrue(sTfs.rename(uniqUri, uniqUri));
-      Assert.fail("expected FileAlreadyExistException happend");
-    } catch (IOException e) {
-    }
+    Assert.assertTrue(sTfs.rename(uniqUri, uniqUri));
     Assert.assertEquals(fileId, sTfs.getFileId(uniqUri));
   }
 

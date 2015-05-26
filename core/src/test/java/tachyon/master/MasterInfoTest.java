@@ -203,13 +203,13 @@ public class MasterInfoTest {
         int fileId = mMasterInfo.getFileId(srcPath);
         try {
           mMasterInfo.mkdirs(dstPath.getParent(), true);
-          mMasterInfo.rename(srcPath, dstPath);
         } catch (FileAlreadyExistException e) {
           // This is an acceptable exception to get, since we don't know if the parent has been
           // created yet by another thread.
         } catch (InvalidPathException e) {
           // This could happen if we are renaming something that's a child of the root.
         }
+        mMasterInfo.rename(srcPath, dstPath);
         Assert.assertEquals(fileId, mMasterInfo.getFileId(dstPath));
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -667,7 +667,7 @@ public class MasterInfoTest {
         new TachyonURI("/testPath"));
   }
 
-  @Test(expected = FileAlreadyExistException.class)
+  @Test
   public void renameExistingDstTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
     mMasterInfo.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
