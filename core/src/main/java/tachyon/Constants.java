@@ -49,6 +49,15 @@ public class Constants {
   public static final String SCHEME_FT = "tachyon-ft";
   public static final String HEADER_FT = SCHEME_FT + "://";
 
+  /** Security - Authentication */
+  public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
+  public static final String TACHYON_SECURITY_USE_SSL = "tachyon.security.use.ssl";
+  /** Security - group Mapping */
+  public static final String TACHYON_SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
+  public static final String TACHYON_SECURITY_GROUPS_CACHE_SECS =
+      "tachyon.security.groups.cache.secs";
+  public static final long TACHYON_SECURITY_GROUPS_CACHE_SECS_DEFAULT = 300;
+
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
