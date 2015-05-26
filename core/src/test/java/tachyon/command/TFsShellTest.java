@@ -340,7 +340,7 @@ public class TFsShellTest {
   }
 
   @Test
-  public void lsrTestest() throws IOException {
+  public void lsrTest() throws IOException {
     int fileIdA = TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TachyonFile[] files = new TachyonFile[4];
     files[0] = mTfs.getFile(fileIdA);
